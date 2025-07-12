@@ -1,89 +1,112 @@
-/* Header Styles */
+/* Modern Portfolio Header Styles */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Adds space between logo and name */
+}
+
+.logo {
+  max-width: 50px;
+}
+
+.portfolio-name {
+  font-size: 18px;
+  color: #333;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+
+
+
 #header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 15px 40px;
-  background: #E3E6F3;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+  padding: 16px 40px;
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   min-height: 70px;
   z-index: 1000;
-  margin: 0;
   box-sizing: border-box;
 }
 
 /* Logo */
 .logo {
-  font-size: 22px;
-  font-weight: 700;
-  color: #222;
+  max-width: 130px;
 }
 
 /* Navbar */
 #navbar {
   display: flex;
   align-items: center;
+  gap: 25px;
 }
 
 #navbar li {
   list-style: none;
-  padding: 0 15px;
-  position: relative;
 }
 
 #navbar li a {
   text-decoration: none;
   font-size: 16px;
-  font-weight: 600;
-  color: #070101;
-  transition: 0.3s ease;
+  font-weight: 500;
+  color: #1f2937;
+  position: relative;
+  padding: 6px 0;
+  transition: color 0.3s ease;
 }
 
 #navbar li a:hover,
 #navbar li a.active {
-  color: #088178;
+  color: #3b82f6;
 }
 
-#navbar li a.active::after,
-#navbar li a:hover::after {
+#navbar li a::after {
   content: "";
-  width: 30%;
-  height: 2px;
-  background: #088178;
   position: absolute;
-  bottom: -4px;
-  left: 20px;
+  width: 0%;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #3b82f6;
+  transition: width 0.3s ease;
+}
+
+#navbar li a:hover::after,
+#navbar li a.active::after {
+  width: 100%;
 }
 
 /* Mobile Navigation */
 #mobile {
   display: none;
   align-items: center;
-  gap: 15px;
 }
 
 #mobile i {
   font-size: 24px;
-  color: #1a1a1a;
+  color: #1f2937;
   cursor: pointer;
 }
 
-/* Fully Responsive Mobile View */
+/* Responsive Navbar */
 @media screen and (max-width: 768px) {
   #navbar {
     flex-direction: column;
     position: fixed;
     top: 0;
     right: -100%;
-    width: 250px;
+    width: 260px;
     height: 100vh;
-    background: #E3E6F3;
-    box-shadow: -10px 0 15px rgba(0, 0, 0, 0.1);
-    padding-top: 50px;
+    background: #ffffff;
+    box-shadow: -10px 0 20px rgba(0, 0, 0, 0.08);
+    padding-top: 70px;
     transition: right 0.3s ease-in-out;
     z-index: 999;
   }
@@ -95,6 +118,7 @@
   #navbar li {
     padding: 20px;
     text-align: center;
+    width: 100%;
   }
 
   #mobile {

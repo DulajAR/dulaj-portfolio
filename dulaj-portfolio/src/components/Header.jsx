@@ -4,7 +4,7 @@ import logo from "../assets/logo.png";
 
 const Header = () => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const location = useLocation(); // Get the current URL path
+  const location = useLocation();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!isMobileMenuOpen);
@@ -12,7 +12,11 @@ const Header = () => {
 
   return (
     <header id="header">
-      <img src={logo} className="logo" alt="Dulaj Portfolio Logo" />
+      <div className="header-left">
+        <img src={logo} className="logo" alt="Dulaj Portfolio Logo" />
+        <span className="portfolio-name">DULAJ AYESHMANTHA RANASINGHE</span>
+      </div>
+
       <nav>
         <ul id="navbar" className={isMobileMenuOpen ? "active" : ""}>
           <li>
@@ -54,6 +58,7 @@ const Header = () => {
           </li>
         </ul>
       </nav>
+
       <div id="mobile">
         <i id="bar" className="fas fa-bars" onClick={toggleMobileMenu}></i>
       </div>
