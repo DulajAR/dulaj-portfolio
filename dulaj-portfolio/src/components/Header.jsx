@@ -1,51 +1,64 @@
-import React from 'react';
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import logo from "../assets/logo.png";
 
 const Header = () => {
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation(); // Get the current URL path
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <header className="bg-blue-600 text-white py-4 px-6 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dulaj Portfolio</h1>
-        <nav>
-          <ul className="flex space-x-4">
-            <li><a href="#home" className="hover:underline">Home</a></li>
-            <li><a href="#about" className="hover:underline">About</a></li>
-            <li><a href="#projects" className="hover:underline">Projects</a></li>
-            <li><a href="#contact" className="hover:underline">Contact</a></li>
-          </ul>
-        </nav>
+    <header id="header">
+      <img src={logo} className="logo" alt="Dulaj Portfolio Logo" />
+      <nav>
+        <ul id="navbar" className={isMobileMenuOpen ? "active" : ""}>
+          <li>
+            <Link to="/" className={location.pathname === "/" ? "active" : ""}>
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/about"
+              className={location.pathname === "/about" ? "active" : ""}
+            >
+              About
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/projects"
+              className={location.pathname === "/projects" ? "active" : ""}
+            >
+              Projects
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/skills"
+              className={location.pathname === "/skills" ? "active" : ""}
+            >
+              Skills
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/contact"
+              className={location.pathname === "/contact" ? "active" : ""}
+            >
+              Contact
+            </Link>
+          </li>
+        </ul>
+      </nav>
+      <div id="mobile">
+        <i id="bar" className="fas fa-bars" onClick={toggleMobileMenu}></i>
       </div>
     </header>
   );
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export default Header;

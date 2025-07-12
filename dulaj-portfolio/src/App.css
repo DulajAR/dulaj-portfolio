@@ -1,42 +1,103 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Header Styles */
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 40px;
+  background: #E3E6F3;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  min-height: 70px;
+  z-index: 1000;
+  margin: 0;
+  box-sizing: border-box;
 }
 
+/* Logo */
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  font-size: 22px;
+  font-weight: 700;
+  color: #222;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Navbar */
+#navbar {
+  display: flex;
+  align-items: center;
+}
+
+#navbar li {
+  list-style: none;
+  padding: 0 15px;
+  position: relative;
+}
+
+#navbar li a {
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: #070101;
+  transition: 0.3s ease;
+}
+
+#navbar li a:hover,
+#navbar li a.active {
+  color: #088178;
+}
+
+#navbar li a.active::after,
+#navbar li a:hover::after {
+  content: "";
+  width: 30%;
+  height: 2px;
+  background: #088178;
+  position: absolute;
+  bottom: -4px;
+  left: 20px;
+}
+
+/* Mobile Navigation */
+#mobile {
+  display: none;
+  align-items: center;
+  gap: 15px;
+}
+
+#mobile i {
+  font-size: 24px;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+/* Fully Responsive Mobile View */
+@media screen and (max-width: 768px) {
+  #navbar {
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 250px;
+    height: 100vh;
+    background: #E3E6F3;
+    box-shadow: -10px 0 15px rgba(0, 0, 0, 0.1);
+    padding-top: 50px;
+    transition: right 0.3s ease-in-out;
+    z-index: 999;
   }
-  to {
-    transform: rotate(360deg);
+
+  #navbar.active {
+    right: 0;
   }
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+  #navbar li {
+    padding: 20px;
+    text-align: center;
   }
-}
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  #mobile {
+    display: flex;
+  }
 }
