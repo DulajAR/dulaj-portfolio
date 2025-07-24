@@ -14,7 +14,7 @@ const Header = () => {
     <header id="header">
       <div className="header-left">
         <img src={logo} className="logo" alt="Dulaj Portfolio Logo" />
-        <span className="portfolio-name">DULAJ AYESHMANTHA RANASINGHE</span>
+        <span className="portfolio-name">DULAJ RANASINGHE</span>
       </div>
 
       <nav>
