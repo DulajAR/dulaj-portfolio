@@ -1,50 +1,72 @@
-import React from "react";
-
-// Import logos from src/assets
-import reactLogo from "../assets/react.png";
-import viteLogo from "../assets/vite.png";
-import firebaseLogo from "../assets/firebase.png";
-import nodeLogo from "../assets/node.png";
-import expressLogo from "../assets/express.png";
-import javaLogo from "../assets/java.png";
-import springLogo from "../assets/spring.png";
-import mysqlLogo from "../assets/mysql.png";
-import mongoLogo from "../assets/mongodb.png";
-import htmlLogo from "../assets/html.png";
-import cssLogo from "../assets/css.png";
-import jsLogo from "../assets/js.png";
-
-const skills = [
-  { name: "React.js", logo: reactLogo },
-  { name: "Vite", logo: viteLogo },
-  { name: "Firebase", logo: firebaseLogo },
-  { name: "Node.js", logo: nodeLogo },
-  { name: "Express", logo: expressLogo },
-  { name: "Java", logo: javaLogo },
-  { name: "Spring Boot", logo: springLogo },
-  { name: "MySQL", logo: mysqlLogo },
-  { name: "MongoDB", logo: mongoLogo },
-  { name: "HTML", logo: htmlLogo },
-  { name: "CSS", logo: cssLogo },
-  { name: "JavaScript", logo: jsLogo },
-];
+import React, { useEffect, useState } from "react";
+import { db } from "../firebase"; // adjust path if needed
+import { collection, getDocs } from "firebase/firestore";
 
 const Skills = () => {
-  return (
-    <section id="skills" style={{ padding: "2rem", textAlign: "center", background: "#f9f9f9" }}>
-      <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", color: "#333" }}>Skills</h2>
+  const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-        gap: "1.5rem",
-        justifyItems: "center",
-        alignItems: "center"
-      }}>
-        {skills.map((skill, index) => (
-          <div key={index} className="skill-card">
-            <img src={skill.logo} alt={skill.name} className="skill-logo" />
-            <p style={{ fontSize: "0.9rem", color: "#444", fontWeight: "500", margin: "0" }}>{skill.name}</p>
+  // Fetch skills from Firestore
+  const fetchSkills = async () => {
+    setLoading(true);
+    try {
+      const skillsCol = collection(db, "skills");
+      const skillsSnapshot = await getDocs(skillsCol);
+      const skillsList = skillsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setSkills(skillsList);
+    } catch (error) {
+      console.error("Error fetching skills:", error);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchSkills();
+  }, []);
+
+  if (loading) return <p style={{ textAlign: "center" }}>Loading skills...</p>;
+
+  if (skills.length === 0) return <p style={{ textAlign: "center" }}>No skills added yet.</p>;
+
+  return (
+    <section
+      id="skills"
+      style={{ padding: "2rem", textAlign: "center", background: "#f9f9f9" }}
+    >
+      <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", color: "#333" }}>
+        Skills
+      </h2>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+          gap: "1.5rem",
+          justifyItems: "center",
+          alignItems: "center",
+        }}
+      >
+        {skills.map((skill) => (
+          <div key={skill.id} className="skill-card">
+            <img
+              src={skill.imageUrl || ""}
+              alt={skill.name}
+              className="skill-logo"
+              onError={(e) => { e.target.src = "/fallback-image.png"; }} // optional fallback
+            />
+            <p
+              style={{
+                fontSize: "0.9rem",
+                color: "#444",
+                fontWeight: "500",
+                margin: "0",
+              }}
+            >
+              {skill.name}
+            </p>
           </div>
         ))}
       </div>

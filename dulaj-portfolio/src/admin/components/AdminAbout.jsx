@@ -1,8 +1,12 @@
+// src/admin/components/AdminAbout.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";  // Import useNavigate
 import { db } from "../../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const AdminAbout = () => {
+  const navigate = useNavigate(); // Initialize navigate
+
   const [aboutContent, setAboutContent] = useState({});
   const [loading, setLoading] = useState(true);
   const [newCategory, setNewCategory] = useState("");
@@ -75,9 +79,16 @@ const AdminAbout = () => {
 
   return (
     <div style={styles.container}>
+      {/* Dashboard Button */}
+      <button
+        onClick={() => navigate("/admin/dashboard")}
+        style={styles.dashboardButton}
+      >
+        Dashboard
+      </button>
+
       <h2 style={styles.title}>Edit About Section</h2>
       <form onSubmit={handleSubmit} style={styles.form}>
-
         {/* Existing Categories */}
         {Object.keys(aboutContent).map((key) => (
           <div key={key} style={styles.group}>
@@ -138,6 +149,17 @@ const styles = {
     borderRadius: "12px",
     boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
     fontFamily: "Arial, sans-serif"
+  },
+  dashboardButton: {
+    marginBottom: "1.5rem",
+    padding: "10px 20px",
+    backgroundColor: "#2563eb", // Blue color
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "1rem",
+    alignSelf: "flex-start"
   },
   title: {
     fontSize: "1.8rem",

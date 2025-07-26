@@ -13,6 +13,7 @@ import ContactPage from "./pages/ContactPage";
 import AdminLoginPage from "./admin/pages/AdminLoginPage";
 import AdminDashboardPage from "./admin/pages/AdminDashboardPage"; // ✅ fixed
 import AdminAboutPage from "./admin/pages/AdminAboutPage";
+import AdminSkillsPage from "./admin/pages/AdminSkillsPage";
 
 
 const App = () => {
@@ -29,6 +30,7 @@ const App = () => {
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
       <Route path="/admin/about" element={<AdminAboutPage />} />
+      <Route path="/admin/skills" element={<AdminSkillsPage />} />
   
     </Routes>
   );
