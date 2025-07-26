@@ -6,7 +6,7 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    navigate("/admin/add-project"); // after login, go to Add Project page
+    navigate("/admin/dashboard"); // after login, go to Add Project page
   };
 
   return <AdminLogin onLogin={handleLogin} />;
