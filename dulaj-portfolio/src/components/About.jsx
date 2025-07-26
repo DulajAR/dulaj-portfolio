@@ -1,7 +1,39 @@
-// src/components/About.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { db } from "../firebase"; // adjust if needed
+import { doc, getDoc } from "firebase/firestore";
 
 const About = () => {
+  const [aboutContent, setAboutContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAbout = async () => {
+      try {
+        const docRef = doc(db, "about", "profile");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setAboutContent(docSnap.data());
+        } else {
+          setAboutContent(null);
+        }
+      } catch (error) {
+        console.error("Error fetching about content:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAbout();
+  }, []);
+
+  if (loading) {
+    return <p style={{ textAlign: "center" }}>Loading About content...</p>;
+  }
+
+  if (!aboutContent) {
+    return <p style={{ textAlign: "center" }}>No About content available.</p>;
+  }
+
   return (
     <section
       id="about"
@@ -13,24 +45,32 @@ const About = () => {
         maxWidth: "800px",
         margin: "2rem auto",
         fontFamily: "Arial, sans-serif",
-        lineHeight: "1.6"
+        lineHeight: "1.6",
+        color: "#333"
       }}
     >
-      <h2 style={{ fontSize: "2rem", color: "#333", marginBottom: "1rem" }}>
+      <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", fontWeight: "bold" }}>
         About Me
       </h2>
-      <p style={{ color: "#555", marginBottom: "1rem" }}>
-        Hi, I'm <strong>Dulaj Ranasinghe</strong>, a passionate and driven software engineer based in Sri Lanka. I specialize in building modern, responsive web applications using technologies like <strong>React, Node.js, Spring Boot, and MySQL</strong>.
-      </p>
-      <p style={{ color: "#555", marginBottom: "1rem" }}>
-        I enjoy crafting clean and user-friendly interfaces, solving challenging problems, and constantly learning new tools and frameworks. Whether it's front-end development, back-end APIs, or full-stack applications — I’m always excited to bring ideas to life through code.
-      </p>
-      <p style={{ color: "#555", marginBottom: "1rem" }}>
-        I hold a Diploma in Software Engineering from <strong>NIBM</strong>, and I’ve worked on several academic and personal projects involving web technologies, REST APIs, and database management systems.
-      </p>
-      <p style={{ color: "#555" }}>
-        Outside of coding, I love <strong>traveling</strong>, listening to <strong>music</strong>, <strong>watching films</strong>, creating <strong>YouTube content</strong>, and exploring the world of <strong>ethical hacking</strong> and <strong>cybersecurity</strong>.
-      </p>
+
+      {/* Compose natural paragraphs */}
+      {aboutContent.intro && <p>{aboutContent.intro}</p>}
+
+      {aboutContent.passion && <p>{aboutContent.passion}</p>}
+
+      {aboutContent.education && <p>{aboutContent.education}</p>}
+
+      {aboutContent.hobbies && <p>{aboutContent.hobbies}</p>}
+
+      {/* Optionally add other dynamic fields as paragraphs */}
+      {Object.entries(aboutContent).map(([key, value]) => {
+        if (
+          ["intro", "passion", "education", "hobbies"].includes(key) ||
+          !value
+        )
+          return null;
+        return <p key={key}>{value}</p>;
+      })}
     </section>
   );
 };
