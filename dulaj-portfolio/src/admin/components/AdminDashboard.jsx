@@ -1,6 +1,8 @@
 // src/components/AdminDashboard.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../../firebase"; // adjust if your path is different
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -12,9 +14,24 @@ const AdminDashboard = () => {
     { label: "Contact", path: "/admin/contact" },
   ];
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/admin/login");
+    } catch (error) {
+      console.error("Logout failed:", error.message);
+    }
+  };
+
   return (
     <div className="dashboard-container">
-      <h1>Admin Dashboard</h1>
+      <div className="dashboard-header">
+        <h1>Admin Dashboard</h1>
+        <button className="logout-button" onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
+
       <div className="nav-grid">
         {navItems.map((item) => (
           <div
@@ -35,10 +52,31 @@ const AdminDashboard = () => {
           font-family: 'Segoe UI', sans-serif;
         }
 
-        .dashboard-container h1 {
-          text-align: center;
+        .dashboard-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+          margin: 0;
           color: #333;
+        }
+
+        .logout-button {
+          background-color: #ef4444;
+          color: white;
+          padding: 0.5rem 1rem;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 0.95rem;
+          transition: background-color 0.3s ease;
+        }
+
+        .logout-button:hover {
+          background-color: #dc2626;
         }
 
         .nav-grid {
