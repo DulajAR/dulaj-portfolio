@@ -14,6 +14,7 @@ import AdminLoginPage from "./admin/pages/AdminLoginPage";
 import AdminDashboardPage from "./admin/pages/AdminDashboardPage";
 import AdminAboutPage from "./admin/pages/AdminAboutPage";
 import AdminSkillsPage from "./admin/pages/AdminSkillsPage";
+import AdminContactPage from "./admin/pages/AdminContactPage"; // ✅ imported
 
 const PrivateRoute = ({ isAuthenticated, children }) => {
   const location = useLocation();
@@ -62,6 +63,14 @@ const App = () => {
         element={
           <PrivateRoute isAuthenticated={isAuthenticated}>
             <AdminSkillsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/contact" // ✅ newly added route
+        element={
+          <PrivateRoute isAuthenticated={isAuthenticated}>
+            <AdminContactPage />
           </PrivateRoute>
         }
       />
