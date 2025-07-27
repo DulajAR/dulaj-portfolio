@@ -2,7 +2,7 @@
 
 Welcome to my personal portfolio project, built with **React (Vite)** and powered by **Firebase**. This site showcases my work, skills, and allows real-time content management through an **admin dashboard** — with support for authentication and dynamic Firestore integration.
 
-🔗 **Live Website:** [https://dulaj-portfolio.web.app](https://dulaj-portfolio.web.app)
+🔗 **Live Website:** 
 
 ---
 
