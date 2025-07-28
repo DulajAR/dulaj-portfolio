@@ -11,6 +11,7 @@ const AdminDashboard = () => {
     { label: "About", path: "/admin/about" },
     { label: "Projects", path: "/admin/projects" },
     { label: "Skills", path: "/admin/skills" },
+    { label: "Certificates", path: "/admin/certificates" }, // ✅ New item added
     { label: "Contact", path: "/admin/contact" },
   ];
 

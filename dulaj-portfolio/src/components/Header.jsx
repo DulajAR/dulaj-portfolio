@@ -50,6 +50,14 @@ const Header = () => {
           </li>
           <li>
             <Link
+              to="/certificates"
+              className={location.pathname === "/certificates" ? "active" : ""}
+            >
+              Certificates
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/contact"
               className={location.pathname === "/contact" ? "active" : ""}
             >
