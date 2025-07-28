@@ -14,7 +14,8 @@ import AdminLoginPage from "./admin/pages/AdminLoginPage";
 import AdminDashboardPage from "./admin/pages/AdminDashboardPage";
 import AdminAboutPage from "./admin/pages/AdminAboutPage";
 import AdminSkillsPage from "./admin/pages/AdminSkillsPage";
-import AdminContactPage from "./admin/pages/AdminContactPage"; // ✅ imported
+import AdminContactPage from "./admin/pages/AdminContactPage";
+import AdminProjectsPage from "./admin/pages/AdminProjectsPage"; // ✅ newly imported
 
 const PrivateRoute = ({ isAuthenticated, children }) => {
   const location = useLocation();
@@ -59,6 +60,14 @@ const App = () => {
         }
       />
       <Route
+        path="/admin/projects" // ✅ newly added route
+        element={
+          <PrivateRoute isAuthenticated={isAuthenticated}>
+            <AdminProjectsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
         path="/admin/skills"
         element={
           <PrivateRoute isAuthenticated={isAuthenticated}>
@@ -67,7 +76,7 @@ const App = () => {
         }
       />
       <Route
-        path="/admin/contact" // ✅ newly added route
+        path="/admin/contact"
         element={
           <PrivateRoute isAuthenticated={isAuthenticated}>
             <AdminContactPage />
