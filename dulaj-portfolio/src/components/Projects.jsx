@@ -4,14 +4,15 @@ import { db } from "../firebase";
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
+  const [mediaIndices, setMediaIndices] = useState({});
   const [selectedProject, setSelectedProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch projects from Firestore
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        setLoading(true);
         const snapshot = await getDocs(collection(db, "projects"));
         const data = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -20,14 +21,34 @@ const Projects = () => {
         setProjects(data);
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch projects:", err);
+        console.error("Error fetching projects:", err);
         setError("Failed to load projects.");
         setLoading(false);
       }
     };
-
     fetchProjects();
   }, []);
+
+  // Slideshow: Change image every 5s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMediaIndices((prevIndices) => {
+        const newIndices = { ...prevIndices };
+        projects.forEach((project) => {
+          const mediaLength = project.media?.length || 0;
+          if (mediaLength > 1) {
+            newIndices[project.id] = (newIndices[project.id] || 0) + 1;
+            if (newIndices[project.id] >= mediaLength) {
+              newIndices[project.id] = 0;
+            }
+          }
+        });
+        return newIndices;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [projects]);
 
   const cleanHTML = (html) => {
     if (!html) return "";
@@ -73,7 +94,9 @@ const Projects = () => {
         }}
       >
         {projects.map((project) => {
-          const firstMedia = project.media?.[0];
+          const currentIndex = mediaIndices[project.id] || 0;
+          const media = project.media?.[currentIndex];
+
           return (
             <div
               key={project.id}
@@ -91,16 +114,16 @@ const Projects = () => {
             >
               <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>{project.title}</h3>
 
-              {firstMedia ? (
-                firstMedia.type.startsWith("video") ? (
+              {media ? (
+                media.type.startsWith("video") ? (
                   <video
-                    src={firstMedia.url}
+                    src={media.url}
                     controls
                     style={{ width: "100%", borderRadius: 8, maxHeight: 180 }}
                   />
                 ) : (
                   <img
-                    src={firstMedia.url}
+                    src={media.url}
                     alt={`${project.title} preview`}
                     style={{ width: "100%", borderRadius: 8, objectFit: "cover", maxHeight: 180 }}
                   />
@@ -120,7 +143,6 @@ const Projects = () => {
         })}
       </div>
 
-      {/* MODAL */}
       {selectedProject && (
         <div
           onClick={() => setSelectedProject(null)}
