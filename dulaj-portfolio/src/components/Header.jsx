@@ -99,7 +99,7 @@ const Header = () => {
         .portfolio-name {
           font-weight: 700;
           font-size: 1.25rem;
-          color: #007bff;
+          color: #04090eff;
           user-select: none;
         }
 

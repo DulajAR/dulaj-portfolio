@@ -60,7 +60,7 @@ const App = () => {
         }
       />
       <Route
-        path="/admin/projects" // ✅ newly added route
+        path="/admin/projects" 
         element={
           <PrivateRoute isAuthenticated={isAuthenticated}>
             <AdminProjectsPage />
