@@ -7,6 +7,7 @@ import AboutPage from "./pages/AboutPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import SkillsPage from "./pages/SkillsPage";
 import ContactPage from "./pages/ContactPage";
+import CertificatesPage from "./pages/CertificatesPage"; // ✅ Public Certificates page
 
 // 🔐 Admin Pages
 import AdminLoginPage from "./admin/pages/AdminLoginPage";
@@ -15,9 +16,9 @@ import AdminAboutPage from "./admin/pages/AdminAboutPage";
 import AdminSkillsPage from "./admin/pages/AdminSkillsPage";
 import AdminContactPage from "./admin/pages/AdminContactPage";
 import AdminProjectsPage from "./admin/pages/AdminProjectsPage";
-import AdminCertificatesPage from "./admin/pages/AdminCertificatesPage"; // ✅ New import
+import AdminCertificatesPage from "./admin/pages/AdminCertificatesPage"; // ✅ Admin Certificates
 
-// 🔒 Auth wrapper for private routes
+// 🔒 Private Route Handler
 const PrivateRoute = ({ isAuthenticated, children }) => {
   const location = useLocation();
   return isAuthenticated ? (
@@ -38,6 +39,7 @@ const App = () => {
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/skills" element={<SkillsPage />} />
       <Route path="/contact" element={<ContactPage />} />
+      <Route path="/certificates" element={<CertificatesPage />} /> {/* ✅ Added public route */}
 
       {/* 🔐 Admin Pages */}
       <Route
@@ -85,7 +87,7 @@ const App = () => {
         }
       />
       <Route
-        path="/admin/certificates" // ✅ New route added here
+        path="/admin/certificates"
         element={
           <PrivateRoute isAuthenticated={isAuthenticated}>
             <AdminCertificatesPage />
