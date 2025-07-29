@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
@@ -15,8 +14,10 @@ import AdminDashboardPage from "./admin/pages/AdminDashboardPage";
 import AdminAboutPage from "./admin/pages/AdminAboutPage";
 import AdminSkillsPage from "./admin/pages/AdminSkillsPage";
 import AdminContactPage from "./admin/pages/AdminContactPage";
-import AdminProjectsPage from "./admin/pages/AdminProjectsPage"; // ✅ newly imported
+import AdminProjectsPage from "./admin/pages/AdminProjectsPage";
+import AdminCertificatesPage from "./admin/pages/AdminCertificatesPage"; // ✅ New import
 
+// 🔒 Auth wrapper for private routes
 const PrivateRoute = ({ isAuthenticated, children }) => {
   const location = useLocation();
   return isAuthenticated ? (
@@ -60,7 +61,7 @@ const App = () => {
         }
       />
       <Route
-        path="/admin/projects" 
+        path="/admin/projects"
         element={
           <PrivateRoute isAuthenticated={isAuthenticated}>
             <AdminProjectsPage />
@@ -80,6 +81,14 @@ const App = () => {
         element={
           <PrivateRoute isAuthenticated={isAuthenticated}>
             <AdminContactPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/certificates" // ✅ New route added here
+        element={
+          <PrivateRoute isAuthenticated={isAuthenticated}>
+            <AdminCertificatesPage />
           </PrivateRoute>
         }
       />
