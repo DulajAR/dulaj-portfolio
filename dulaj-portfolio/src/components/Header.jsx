@@ -1,15 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "../assets/logo.png"; // Adjust this path if needed
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
+import logo from "../assets/logo.png";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [cvUrl, setCvUrl] = useState("");
   const location = useLocation();
 
-  // Close mobile menu on route change
+  // Close menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
+
+  // Fetch CV URL from Firestore
+  useEffect(() => {
+    const fetchCV = async () => {
+      try {
+        const cvsRef = collection(db, "cvs");
+        const snapshot = await getDocs(cvsRef);
+        if (!snapshot.empty) {
+          const firstCV = snapshot.docs[0].data();
+          setCvUrl(firstCV.cvUrl);
+        } else {
+          console.warn("No CV found in Firestore.");
+        }
+      } catch (err) {
+        console.error("Error fetching CV:", err);
+      }
+    };
+    fetchCV();
+  }, []);
 
   const navLinks = [
     { path: "/", label: "Home" },
@@ -37,12 +59,23 @@ const Header = () => {
                   className={`nav-link ${
                     location.pathname === path ? "active" : ""
                   }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {label}
                 </Link>
               </li>
             ))}
+
+            {cvUrl?.startsWith("https://") && (
+              <li className="nav-item">
+                <a
+                  href={cvUrl}
+                  download
+                  className="cv-button"
+                >
+                  📄 Download CV
+                </a>
+              </li>
+            )}
           </ul>
         </nav>
 
@@ -57,8 +90,8 @@ const Header = () => {
         </button>
       </header>
 
+      {/* CSS Styles */}
       <style>{`
-        /* Reset & base */
         * {
           box-sizing: border-box;
         }
@@ -73,7 +106,6 @@ const Header = () => {
           color: inherit;
         }
 
-        /* Header */
         .header {
           display: flex;
           justify-content: space-between;
@@ -86,7 +118,6 @@ const Header = () => {
           z-index: 1000;
         }
 
-        /* Logo */
         .logo-container {
           display: flex;
           align-items: center;
@@ -103,7 +134,6 @@ const Header = () => {
           user-select: none;
         }
 
-        /* Navigation */
         .nav {
           display: flex;
           align-items: center;
@@ -115,7 +145,6 @@ const Header = () => {
           margin: 0;
           padding: 0;
         }
-        .nav-item {}
 
         .nav-link {
           font-weight: 500;
@@ -138,7 +167,19 @@ const Header = () => {
           border-radius: 2px;
         }
 
-        /* Hamburger */
+        .cv-button {
+          background-color: #28a745;
+          color: white;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          transition: background-color 0.3s ease, transform 0.2s ease;
+          font-weight: 500;
+        }
+        .cv-button:hover {
+          background-color: #218838;
+          transform: scale(1.05);
+        }
+
         .hamburger {
           display: none;
           flex-direction: column;
@@ -163,7 +204,6 @@ const Header = () => {
           transition: all 0.3s ease;
           transform-origin: 4px 0px;
         }
-        /* Hamburger animation when active */
         .hamburger.is-active .bar:nth-child(1) {
           transform: rotate(45deg) translate(5px, 5px);
         }
@@ -174,7 +214,6 @@ const Header = () => {
           transform: rotate(-45deg) translate(5px, -5px);
         }
 
-        /* Responsive Mobile Menu */
         @media (max-width: 768px) {
           .nav {
             position: fixed;
@@ -197,7 +236,8 @@ const Header = () => {
             gap: 1.5rem;
             padding-left: 2rem;
           }
-          .nav-link {
+          .nav-link,
+          .cv-button {
             font-size: 1.2rem;
           }
           .hamburger {
