@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase"; // adjust if needed
+import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 const About = () => {
@@ -39,38 +39,42 @@ const About = () => {
       id="about"
       style={{
         padding: "3rem",
-        backgroundColor: "#f9f9f9",
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        maxWidth: "800px",
+        borderRadius: "20px",
+        maxWidth: "900px",
         margin: "2rem auto",
         fontFamily: "Arial, sans-serif",
         lineHeight: "1.6",
-        color: "#333"
+        color: "#fff",
+        background: "linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)",
+        backgroundSize: "400% 400%",
+        animation: "gradientBG 15s ease infinite",
+        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.2)"
       }}
     >
-      <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", fontWeight: "bold" }}>
+      <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", fontWeight: "bold", textAlign: "center" }}>
         About Me
       </h2>
 
-      {/* Compose natural paragraphs */}
       {aboutContent.intro && <p>{aboutContent.intro}</p>}
-
       {aboutContent.passion && <p>{aboutContent.passion}</p>}
-
       {aboutContent.education && <p>{aboutContent.education}</p>}
-
       {aboutContent.hobbies && <p>{aboutContent.hobbies}</p>}
 
-      {/* Optionally add other dynamic fields as paragraphs */}
       {Object.entries(aboutContent).map(([key, value]) => {
-        if (
-          ["intro", "passion", "education", "hobbies"].includes(key) ||
-          !value
-        )
-          return null;
+        if (["intro", "passion", "education", "hobbies"].includes(key) || !value) return null;
         return <p key={key}>{value}</p>;
       })}
+
+      {/* Keyframe animation for gradient */}
+      <style>
+        {`
+          @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        `}
+      </style>
     </section>
   );
 };
