@@ -2,6 +2,21 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
+import {
+  FaEnvelope,
+  FaPhone,
+  FaLinkedin,
+  FaGithub,
+  FaGlobe,
+} from "react-icons/fa";
+
+const iconMap = {
+  email: <FaEnvelope style={{ marginRight: "10px", color: "#007bff" }} />,
+  phone: <FaPhone style={{ marginRight: "10px", color: "#28a745" }} />,
+  linkedin: <FaLinkedin style={{ marginRight: "10px", color: "#0e76a8" }} />,
+  github: <FaGithub style={{ marginRight: "10px", color: "#333" }} />,
+  website: <FaGlobe style={{ marginRight: "10px", color: "#17a2b8" }} />,
+};
 
 const Contact = () => {
   const [contacts, setContacts] = useState([]);
@@ -19,6 +34,11 @@ const Contact = () => {
     fetchContacts();
   }, []);
 
+  const getIcon = (type) => {
+    const key = type.toLowerCase();
+    return iconMap[key] || <FaGlobe style={{ marginRight: "10px" }} />;
+  };
+
   return (
     <section
       id="contact"
@@ -26,12 +46,21 @@ const Contact = () => {
         padding: "4rem 2rem",
         maxWidth: "800px",
         margin: "auto",
-        backgroundColor: "#f9f9f9",
+        background:
+          "linear-gradient(to right, #e0f7fa, #f1f8e9)",
         borderRadius: "16px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        transition: "all 0.3s ease-in-out",
       }}
     >
-      <h2 style={{ fontSize: "2.2rem", marginBottom: "1rem", textAlign: "center" }}>
+      <h2
+        style={{
+          fontSize: "2.5rem",
+          marginBottom: "1rem",
+          textAlign: "center",
+          color: "#333",
+        }}
+      >
         📬 Contact Me
       </h2>
       <p style={{ textAlign: "center", color: "#555", marginBottom: "2rem" }}>
@@ -43,18 +72,26 @@ const Contact = () => {
           <li
             key={contact.id}
             style={{
-              padding: "1rem",
+              padding: "1rem 1.2rem",
               backgroundColor: "#fff",
-              borderRadius: "10px",
+              borderRadius: "12px",
               marginBottom: "1rem",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.06)",
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              flexWrap: "wrap",
+              transition: "transform 0.2s ease, box-shadow 0.3s ease",
             }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.transform = "translateY(-4px)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.transform = "translateY(0)")
+            }
           >
-            <strong style={{ fontSize: "1.1rem" }}>{contact.type}</strong>
+            {getIcon(contact.type)}
+            <strong style={{ marginRight: "10px", minWidth: "100px" }}>
+              {contact.type}
+            </strong>
             <a
               href={
                 contact.type.toLowerCase() === "email"
@@ -67,6 +104,7 @@ const Contact = () => {
                 color: "#007bff",
                 textDecoration: "none",
                 fontWeight: 500,
+                wordBreak: "break-word",
               }}
             >
               {contact.link}
