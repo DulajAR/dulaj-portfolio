@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../firebase"; // adjust path if needed
+import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 const Skills = () => {
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch skills from Firestore
   const fetchSkills = async () => {
     setLoading(true);
     try {
       const skillsCol = collection(db, "skills");
       const skillsSnapshot = await getDocs(skillsCol);
-      const skillsList = skillsSnapshot.docs.map(doc => ({
+      const skillsList = skillsSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
       setSkills(skillsList);
     } catch (error) {
@@ -27,56 +26,68 @@ const Skills = () => {
     fetchSkills();
   }, []);
 
-  if (loading) return <p style={{ textAlign: "center" }}>Loading skills...</p>;
+  if (loading)
+    return <p style={{ textAlign: "center" }}>Loading skills...</p>;
 
-  if (skills.length === 0) return <p style={{ textAlign: "center" }}>No skills added yet.</p>;
+  if (skills.length === 0)
+    return <p style={{ textAlign: "center" }}>No skills added yet.</p>;
 
   return (
-    <section
-      id="skills"
-      style={{ padding: "2rem", textAlign: "center", background: "#f9f9f9" }}
-    >
-      <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", color: "#333" }}>
-        Skills
-      </h2>
+    <section id="skills" className="skills-section">
+      <h2 className="skills-heading">Skills</h2>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-          gap: "1.5rem",
-          justifyItems: "center",
-          alignItems: "center",
-        }}
-      >
+      <div className="skills-grid">
         {skills.map((skill) => (
           <div key={skill.id} className="skill-card">
             <img
               src={skill.imageUrl || ""}
               alt={skill.name}
               className="skill-logo"
-              onError={(e) => { e.target.src = "/fallback-image.png"; }} // optional fallback
-            />
-            <p
-              style={{
-                fontSize: "0.9rem",
-                color: "#444",
-                fontWeight: "500",
-                margin: "0",
+              onError={(e) => {
+                e.target.src = "/fallback-image.png";
               }}
-            >
-              {skill.name}
-            </p>
+            />
+            <p className="skill-name">{skill.name}</p>
           </div>
         ))}
       </div>
 
       <style>{`
+        .skills-section {
+          padding: 2rem;
+          text-align: center;
+          background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a1c4fd);
+          background-size: 400% 400%;
+          animation: gradientBG 15s ease infinite;
+          min-height: 100vh;
+        }
+
+        @keyframes gradientBG {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .skills-heading {
+          font-size: 2.5rem;
+          margin-bottom: 2rem;
+          color: #fff;
+          text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .skills-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 1.5rem;
+          justify-items: center;
+          align-items: center;
+        }
+
         .skill-card {
-          background: #ffffff;
+          background: #ffffffcc;
           border-radius: 12px;
           padding: 1rem;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
           transition: transform 0.3s ease, box-shadow 0.3s ease;
           width: 120px;
           height: 120px;
@@ -88,7 +99,7 @@ const Skills = () => {
 
         .skill-card:hover {
           transform: scale(1.1) rotate(2deg);
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
 
         .skill-logo {
@@ -101,6 +112,13 @@ const Skills = () => {
 
         .skill-card:hover .skill-logo {
           transform: rotate(15deg) scale(1.2);
+        }
+
+        .skill-name {
+          font-size: 0.95rem;
+          color: #333;
+          font-weight: 600;
+          margin: 0;
         }
       `}</style>
     </section>
