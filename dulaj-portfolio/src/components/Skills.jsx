@@ -27,14 +27,40 @@ const Skills = () => {
   }, []);
 
   if (loading)
-    return <p style={{ textAlign: "center" }}>Loading skills...</p>;
+    return (
+      <section
+        className="skills-section"
+        style={{
+          background: "#0f172a",
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+        }}
+      >
+        <img
+          src="https://i.gifer.com/ZKZg.gif"
+          alt="Loading..."
+          style={{ width: "100px", height: "100px" }}
+        />
+        <p style={{ color: "#fff", marginTop: "1rem", fontSize: "1.2rem" }}>
+          Loading Skills...
+        </p>
+      </section>
+    );
 
   if (skills.length === 0)
-    return <p style={{ textAlign: "center" }}>No skills added yet.</p>;
+    return (
+      <section className="skills-section">
+        <h2 className="fancy-heading">SKILLS</h2>
+        <p style={{ textAlign: "center" }}>No skills added yet.</p>
+      </section>
+    );
 
   return (
     <section id="skills" className="skills-section">
-      <h2 className="skills-heading">Skills</h2>
+      <h2 className="fancy-heading">SKILLS</h2>
 
       <div className="skills-grid">
         {skills.map((skill) => (
@@ -68,16 +94,48 @@ const Skills = () => {
           100% { background-position: 0% 50%; }
         }
 
-        .skills-heading {
-          font-size: 2.5rem;
+        .fancy-heading {
+          font-size: 3rem;
+          text-align: center;
+          text-transform: uppercase;
+          color: #00ffff;
+          letter-spacing: 2px;
           margin-bottom: 2rem;
-          color: #fff;
-          text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+          position: relative;
+          animation: textFadeSlideUp 0.6s ease forwards;
+          text-shadow: 0 0 8px #00ffff, 0 0 16px #00ffff;
+        }
+
+        .fancy-heading::after {
+          content: "";
+          display: block;
+          width: 60px;
+          height: 3px;
+          margin: 10px auto 0;
+          background-color: #00ffff;
+          border-radius: 2px;
+          animation: underlineGrow 0.6s ease forwards;
+        }
+
+        @keyframes textFadeSlideUp {
+          0% { opacity: 0; transform: translateY(20px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes underlineGrow {
+          from { width: 0; }
+          to { width: 60px; }
+        }
+
+        @media (max-width: 768px) {
+          .fancy-heading {
+            font-size: 2.2rem;
+          }
         }
 
         .skills-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* increased min width */
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
           gap: 1.5rem;
           justify-items: center;
           align-items: center;
@@ -89,8 +147,8 @@ const Skills = () => {
           padding: 1rem;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
           transition: transform 0.3s ease, box-shadow 0.3s ease;
-          width: 150px;   /* increased size */
-          height: 150px;  /* increased size */
+          width: 150px;
+          height: 150px;
           display: flex;
           flex-direction: column;
           align-items: center;

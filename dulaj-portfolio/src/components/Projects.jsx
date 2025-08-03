@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
-import backgroundImage from "../assets/project.png"; 
+import backgroundImage from "../assets/project.png";
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -73,11 +73,28 @@ const Projects = () => {
     return clean.replace(/\n/g, "<br>");
   };
 
+  // 👨‍💻 Loading state
   if (loading) {
     return (
-      <section className="projects-section">
-        <h2>Projects</h2>
-        <p>Loading...</p>
+      <section
+        className="projects-section"
+        style={{
+          backgroundColor: "#0f172a",
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "column",
+        }}
+      >
+        <img
+          src="https://i.gifer.com/ZKZg.gif"
+          alt="Loading..."
+          style={{ width: "120px", height: "120px" }}
+        />
+        <p style={{ color: "#fff", marginTop: "1rem", fontSize: "1.2rem" }}>
+          Loading Projects...
+        </p>
       </section>
     );
   }
@@ -85,7 +102,7 @@ const Projects = () => {
   if (error) {
     return (
       <section className="projects-section">
-        <h2>Projects</h2>
+        <h2 className="fancy-heading">PROJECTS</h2>
         <p style={{ color: "red" }}>{error}</p>
       </section>
     );
@@ -93,7 +110,7 @@ const Projects = () => {
 
   return (
     <section className="projects-section">
-      <h2 style={{ textAlign: "center", marginBottom: "2rem", color: "#fff" }}>Projects</h2>
+      <h2 className="fancy-heading">PROJECTS</h2>
 
       <div
         style={{
@@ -121,23 +138,38 @@ const Projects = () => {
                 cursor: "pointer",
                 transition: "transform 0.2s",
               }}
-              onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
-              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.02)")
+              }
+              onMouseOut={(e) =>
+                (e.currentTarget.style.transform = "scale(1)")
+              }
             >
-              <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>{project.title}</h3>
+              <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>
+                {project.title}
+              </h3>
 
               {media ? (
                 media.type.startsWith("video") ? (
                   <video
                     src={media.url}
                     controls
-                    style={{ width: "100%", borderRadius: 8, maxHeight: 180 }}
+                    style={{
+                      width: "100%",
+                      borderRadius: 8,
+                      maxHeight: 180,
+                    }}
                   />
                 ) : (
                   <img
                     src={media.url}
                     alt={`${project.title} preview`}
-                    style={{ width: "100%", borderRadius: 8, objectFit: "cover", maxHeight: 180 }}
+                    style={{
+                      width: "100%",
+                      borderRadius: 8,
+                      objectFit: "cover",
+                      maxHeight: 180,
+                    }}
                   />
                 )
               ) : (
@@ -147,7 +179,9 @@ const Projects = () => {
               <p
                 style={{ marginTop: 10, fontSize: "0.9rem" }}
                 dangerouslySetInnerHTML={{
-                  __html: formatDescription(project.description?.slice(0, 150) + "..."),
+                  __html: formatDescription(
+                    project.description?.slice(0, 150) + "..."
+                  ),
                 }}
               />
             </div>
@@ -200,7 +234,11 @@ const Projects = () => {
                     <video
                       key={item.url}
                       controls
-                      style={{ maxWidth: "48%", maxHeight: 200, borderRadius: 8 }}
+                      style={{
+                        maxWidth: "48%",
+                        maxHeight: 200,
+                        borderRadius: 8,
+                      }}
                       src={item.url}
                     />
                   ) : (
@@ -258,6 +296,45 @@ const Projects = () => {
           padding: 3rem 1rem;
           min-height: 100vh;
           width: 100%;
+        }
+
+        .fancy-heading {
+          font-size: 3rem;
+          text-align: center;
+          text-transform: uppercase;
+          color: #00ffff;
+          letter-spacing: 2px;
+          margin-bottom: 2rem;
+          position: relative;
+          animation: textFadeSlideUp 0.6s ease forwards;
+          text-shadow: 0 0 8px #00ffff, 0 0 16px #00ffff;
+        }
+
+        .fancy-heading::after {
+          content: "";
+          display: block;
+          width: 60px;
+          height: 3px;
+          margin: 10px auto 0;
+          background-color: #00ffff;
+          border-radius: 2px;
+          animation: underlineGrow 0.6s ease forwards;
+        }
+
+        @keyframes textFadeSlideUp {
+          0% { opacity: 0; transform: translateY(20px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes underlineGrow {
+          from { width: 0; }
+          to { width: 60px; }
+        }
+
+        @media (max-width: 768px) {
+          .fancy-heading {
+            font-size: 2.2rem;
+          }
         }
       `}</style>
     </section>

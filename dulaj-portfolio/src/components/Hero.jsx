@@ -5,14 +5,14 @@ import { motion } from "framer-motion";
 const Hero = () => {
   const [sriLankaTime, setSriLankaTime] = useState("");
   const [worldTimes, setWorldTimes] = useState({});
-  const [timeSpent, setTimeSpent] = useState(0); // seconds
+  const [timeSpent, setTimeSpent] = useState(0);
 
   const sentences = [
     "A Full Stack Developer",
     "A Software Engineering Undergraduate",
     "A Web Developer",
     "A Programmer",
-    "A YouTube Content Creator"
+    "A YouTube Content Creator",
   ];
 
   const [text, setText] = useState("");
@@ -20,7 +20,6 @@ const Hero = () => {
   const [subIndex, setSubIndex] = useState(0);
   const [deleting, setDeleting] = useState(false);
 
-  // Typewriter effect
   useEffect(() => {
     if (index >= sentences.length) setIndex(0);
 
@@ -36,16 +35,13 @@ const Hero = () => {
     }
 
     const timeout = setTimeout(() => {
-      setSubIndex((prev) =>
-        deleting ? prev - 1 : prev + 1
-      );
+      setSubIndex((prev) => (deleting ? prev - 1 : prev + 1));
       setText(sentences[index].substring(0, subIndex));
     }, deleting ? 50 : 100);
 
     return () => clearTimeout(timeout);
   }, [subIndex, index, deleting]);
 
-  // Clock
   useEffect(() => {
     const updateClocks = () => {
       const now = new Date();
@@ -77,7 +73,6 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeSpent((prev) => prev + 1);
@@ -101,6 +96,7 @@ const Hero = () => {
     gap: "2rem",
     backgroundColor: "#1e1e2f",
     color: "#fff",
+    minHeight: "100vh",
   };
 
   const imageStyle = {
@@ -116,6 +112,7 @@ const Hero = () => {
     borderRadius: "12px",
     maxWidth: "500px",
     fontSize: "1rem",
+    flex: 1,
   };
 
   return (
@@ -141,29 +138,28 @@ const Hero = () => {
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 1, delay: 0.5 }}
       >
-        <h1>Hi, I'm Dulaj</h1>
-        <p style={{ minHeight: "1.5rem" }}>
-          <span style={{ color: "#00d4ff", fontWeight: "bold" }}>{text}</span>
+        <h1>Hi, I'm Dulaj Ranasinghe</h1>
+        <p style={{ minHeight: "2rem", fontSize: "1.5rem", fontWeight: "bold" }}>
+          <span style={{ color: "#00d4ff" }}>{text}</span>
           <span className="cursor">|</span>
         </p>
 
         <hr style={{ margin: "1rem 0", borderColor: "#555" }} />
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          <h3>🕒 Current Time</h3>
-          <p>
-            <strong>Sri Lanka:</strong> {sriLankaTime}
-          </p>
+        {/* DIGITAL CLOCK */}
+        <div className="digital-clock-box">
+          <h3 className="digital-heading">🕒 Real-Time Clock</h3>
+          <div className="clock-line">
+            <span>Sri Lanka</span>
+            <span>{sriLankaTime}</span>
+          </div>
           {Object.entries(worldTimes).map(([location, time]) => (
-            <p key={location}>
-              <strong>{location}:</strong> {time}
-            </p>
+            <div className="clock-line" key={location}>
+              <span>{location}</span>
+              <span>{time}</span>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         <hr style={{ margin: "1rem 0", borderColor: "#555" }} />
 
@@ -172,8 +168,7 @@ const Hero = () => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 1.5 }}
         >
-          ⏱️ You’ve been here for{" "}
-          <strong>{formatTimeSpent(timeSpent)}</strong>
+          ⏱️ You’ve been here for <strong>{formatTimeSpent(timeSpent)}</strong>
         </motion.p>
       </motion.div>
 
@@ -190,6 +185,32 @@ const Hero = () => {
           50% {
             opacity: 0;
           }
+        }
+
+        .digital-clock-box {
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid #00d4ff;
+          border-radius: 12px;
+          padding: 1rem;
+          font-family: "Courier New", monospace;
+          color: #00d4ff;
+          box-shadow: 0 0 12px #00d4ff55;
+          margin-bottom: 1rem;
+        }
+
+        .digital-heading {
+          text-align: center;
+          font-size: 1.2rem;
+          margin-bottom: 1rem;
+          text-shadow: 0 0 6px #00d4ff;
+        }
+
+        .clock-line {
+          display: flex;
+          justify-content: space-between;
+          margin: 0.3rem 0;
+          font-size: 1.1rem;
+          letter-spacing: 1px;
         }
       `}</style>
     </motion.div>
