@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 
@@ -77,7 +77,7 @@ const Skills = () => {
 
         .skills-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* increased min width */
           gap: 1.5rem;
           justify-items: center;
           align-items: center;
@@ -89,8 +89,8 @@ const Skills = () => {
           padding: 1rem;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
           transition: transform 0.3s ease, box-shadow 0.3s ease;
-          width: 120px;
-          height: 120px;
+          width: 150px;   /* increased size */
+          height: 150px;  /* increased size */
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -103,8 +103,8 @@ const Skills = () => {
         }
 
         .skill-logo {
-          width: 50px;
-          height: 50px;
+          width: 70px;
+          height: 70px;
           object-fit: contain;
           margin-bottom: 0.5rem;
           transition: transform 0.3s ease;

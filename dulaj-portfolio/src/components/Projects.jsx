@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
+import backgroundImage from "../assets/project.png"; 
 
 const Projects = () => {
   const [projects, setProjects] = useState([]);
@@ -9,7 +10,6 @@ const Projects = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch projects from Firestore
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -29,7 +29,6 @@ const Projects = () => {
     fetchProjects();
   }, []);
 
-  // Slideshow: Change image every 5s
   useEffect(() => {
     const interval = setInterval(() => {
       setMediaIndices((prevIndices) => {
@@ -77,8 +76,8 @@ const Projects = () => {
   if (loading) {
     return (
       <section className="projects-section">
-        <h2 style={{ textAlign: "center" }}>Projects</h2>
-        <p style={{ textAlign: "center" }}>Loading...</p>
+        <h2>Projects</h2>
+        <p>Loading...</p>
       </section>
     );
   }
@@ -86,15 +85,15 @@ const Projects = () => {
   if (error) {
     return (
       <section className="projects-section">
-        <h2 style={{ textAlign: "center" }}>Projects</h2>
-        <p style={{ color: "red", textAlign: "center" }}>{error}</p>
+        <h2>Projects</h2>
+        <p style={{ color: "red" }}>{error}</p>
       </section>
     );
   }
 
   return (
     <section className="projects-section">
-      <h2 style={{ textAlign: "center", marginBottom: "2rem", color: "#222" }}>Projects</h2>
+      <h2 style={{ textAlign: "center", marginBottom: "2rem", color: "#fff" }}>Projects</h2>
 
       <div
         style={{
@@ -252,17 +251,13 @@ const Projects = () => {
 
       <style>{`
         .projects-section {
-          background: linear-gradient(-45deg, #e3ffe7, #d9e7ff, #fceabb, #fcd1d1);
-          background-size: 400% 400%;
-          animation: gradientFlow 12s ease infinite;
+          background-image: url(${backgroundImage});
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
           padding: 3rem 1rem;
           min-height: 100vh;
-        }
-
-        @keyframes gradientFlow {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+          width: 100%;
         }
       `}</style>
     </section>

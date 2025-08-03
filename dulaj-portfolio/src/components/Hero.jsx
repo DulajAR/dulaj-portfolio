@@ -7,6 +7,45 @@ const Hero = () => {
   const [worldTimes, setWorldTimes] = useState({});
   const [timeSpent, setTimeSpent] = useState(0); // seconds
 
+  const sentences = [
+    "A Full Stack Developer",
+    "A Software Engineering Undergraduate",
+    "A Web Developer",
+    "A Programmer",
+    "A YouTube Content Creator"
+  ];
+
+  const [text, setText] = useState("");
+  const [index, setIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+
+  // Typewriter effect
+  useEffect(() => {
+    if (index >= sentences.length) setIndex(0);
+
+    if (subIndex === sentences[index].length + 1 && !deleting) {
+      setTimeout(() => setDeleting(true), 1000);
+      return;
+    }
+
+    if (subIndex === 0 && deleting) {
+      setDeleting(false);
+      setIndex((prev) => (prev + 1) % sentences.length);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setSubIndex((prev) =>
+        deleting ? prev - 1 : prev + 1
+      );
+      setText(sentences[index].substring(0, subIndex));
+    }, deleting ? 50 : 100);
+
+    return () => clearTimeout(timeout);
+  }, [subIndex, index, deleting]);
+
+  // Clock
   useEffect(() => {
     const updateClocks = () => {
       const now = new Date();
@@ -38,6 +77,7 @@ const Hero = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeSpent((prev) => prev + 1);
@@ -102,7 +142,10 @@ const Hero = () => {
         transition={{ duration: 1, delay: 0.5 }}
       >
         <h1>Hi, I'm Dulaj</h1>
-        <p>Software Engineer | Full Stack Developer</p>
+        <p style={{ minHeight: "1.5rem" }}>
+          <span style={{ color: "#00d4ff", fontWeight: "bold" }}>{text}</span>
+          <span className="cursor">|</span>
+        </p>
 
         <hr style={{ margin: "1rem 0", borderColor: "#555" }} />
 
@@ -133,6 +176,22 @@ const Hero = () => {
           <strong>{formatTimeSpent(timeSpent)}</strong>
         </motion.p>
       </motion.div>
+
+      <style>{`
+        .cursor {
+          display: inline-block;
+          width: 1px;
+          background-color: #00d4ff;
+          margin-left: 4px;
+          animation: blink 1s step-start infinite;
+        }
+
+        @keyframes blink {
+          50% {
+            opacity: 0;
+          }
+        }
+      `}</style>
     </motion.div>
   );
 };
