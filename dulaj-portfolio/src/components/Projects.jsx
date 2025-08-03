@@ -75,22 +75,34 @@ const Projects = () => {
   };
 
   if (loading) {
-    return <section id="projects" style={{ textAlign: "center", padding: "2rem" }}><h2>Projects</h2><p>Loading...</p></section>;
+    return (
+      <section className="projects-section">
+        <h2 style={{ textAlign: "center" }}>Projects</h2>
+        <p style={{ textAlign: "center" }}>Loading...</p>
+      </section>
+    );
   }
 
   if (error) {
-    return <section id="projects" style={{ textAlign: "center", padding: "2rem" }}><h2>Projects</h2><p style={{ color: "red" }}>{error}</p></section>;
+    return (
+      <section className="projects-section">
+        <h2 style={{ textAlign: "center" }}>Projects</h2>
+        <p style={{ color: "red", textAlign: "center" }}>{error}</p>
+      </section>
+    );
   }
 
   return (
-    <section id="projects" style={{ padding: "2rem", maxWidth: "1200px", margin: "auto" }}>
-      <h2 style={{ textAlign: "center", marginBottom: "2rem" }}>Projects</h2>
+    <section className="projects-section">
+      <h2 style={{ textAlign: "center", marginBottom: "2rem", color: "#222" }}>Projects</h2>
 
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
           gap: "20px",
+          maxWidth: "1200px",
+          margin: "0 auto",
         }}
       >
         {projects.map((project) => {
@@ -105,7 +117,8 @@ const Projects = () => {
                 border: "1px solid #ddd",
                 borderRadius: "10px",
                 padding: "16px",
-                boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                backgroundColor: "#ffffffcc",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                 cursor: "pointer",
                 transition: "transform 0.2s",
               }}
@@ -236,6 +249,22 @@ const Projects = () => {
           </div>
         </div>
       )}
+
+      <style>{`
+        .projects-section {
+          background: linear-gradient(-45deg, #e3ffe7, #d9e7ff, #fceabb, #fcd1d1);
+          background-size: 400% 400%;
+          animation: gradientFlow 12s ease infinite;
+          padding: 3rem 1rem;
+          min-height: 100vh;
+        }
+
+        @keyframes gradientFlow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
     </section>
   );
 };
