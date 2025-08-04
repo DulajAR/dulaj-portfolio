@@ -1,22 +1,40 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { SiX } from "react-icons/si"; // Twitter (X) icon
+
 import {
   FaEnvelope,
   FaPhone,
   FaLinkedin,
   FaGithub,
   FaGlobe,
+  FaInstagram,
+  FaFacebook,
 } from "react-icons/fa";
-import contactBg from "../assets/contact.png"; // ✅ import image
+import contactBg from "../assets/contact.png";
 
+// ✅ Replace Twitter icon with new X logo
+const XLogo = (
+  <img
+    src="https://upload.wikimedia.org/wikipedia/commons/9/95/X_logo_2023.svg"
+    alt="X"
+    style={{ width: "24px", height: "24px", objectFit: "contain" }}
+  />
+);
+
+// ✅ Icon map
 const iconMap = {
-  email: <FaEnvelope style={{ marginRight: "10px", color: "#007bff" }} />,
-  phone: <FaPhone style={{ marginRight: "10px", color: "#28a745" }} />,
-  linkedin: <FaLinkedin style={{ marginRight: "10px", color: "#0e76a8" }} />,
-  github: <FaGithub style={{ marginRight: "10px", color: "#333" }} />,
-  website: <FaGlobe style={{ marginRight: "10px", color: "#17a2b8" }} />,
+  email: <FaEnvelope style={{ color: "#007bff" }} />,
+  phone: <FaPhone style={{ color: "#28a745" }} />,
+  linkedin: <FaLinkedin style={{ color: "#0e76a8" }} />,
+  github: <FaGithub style={{ color: "#333" }} />,
+  website: <FaGlobe style={{ color: "#17a2b8" }} />,
+  instagram: <FaInstagram style={{ color: "#e4405f" }} />,
+  facebook: <FaFacebook style={{ color: "#3b5998" }} />,
+  x: <SiX style={{ color: "#000000" }} />, // 👈 Consistent style
 };
+
 
 const Contact = () => {
   const [contacts, setContacts] = useState([]);
@@ -40,11 +58,6 @@ const Contact = () => {
 
     fetchContacts();
   }, []);
-
-  const getIcon = (type) => {
-    const key = type.toLowerCase();
-    return iconMap[key] || <FaGlobe style={{ marginRight: "10px" }} />;
-  };
 
   if (loading)
     return (
@@ -92,65 +105,74 @@ const Contact = () => {
           borderRadius: "16px",
           padding: "3rem 2rem",
           boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+          textAlign: "center",
         }}
       >
-        <h2 className="fancy-heading" style={{ marginBottom: "1rem", textAlign: "center" }}>
-          📬 CONTACT ME
-        </h2>
-        <p style={{ textAlign: "center", color: "#333", marginBottom: "2rem" }}>
-          Feel free to reach out through any of the platforms below.
+        <h2 className="fancy-heading">📬 CONTACT ME</h2>
+        <p style={{ color: "#333", marginBottom: "2rem" }}>
+          Connect with me through any of the platforms below.
         </p>
 
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {contacts.map((contact) => (
-            <li
-              key={contact.id}
-              style={{
-                padding: "1rem 1.2rem",
-                backgroundColor: "#ffffffcc",
-                borderRadius: "12px",
-                marginBottom: "1rem",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.06)",
-                display: "flex",
-                alignItems: "center",
-                transition: "transform 0.2s ease, box-shadow 0.3s ease",
-                cursor: "pointer",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-4px)")}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
-            >
-              {getIcon(contact.type)}
-              <strong style={{ marginRight: "10px", minWidth: "100px", textTransform: "capitalize" }}>
-                {contact.type}
-              </strong>
+        {/* ICONS GRID */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "1.2rem",
+            marginTop: "2rem",
+          }}
+        >
+          {contacts.map((contact) => {
+            const key = contact.type.trim().toLowerCase();
+            const icon = iconMap[key] || <FaGlobe />;
+            const link =
+              key === "email"
+                ? `mailto:${contact.link}`
+                : contact.link.startsWith("http")
+                ? contact.link
+                : `https://${contact.link}`;
+
+            return (
               <a
-                href={
-                  contact.type.toLowerCase() === "email"
-                    ? `mailto:${contact.link}`
-                    : contact.link.startsWith("http")
-                    ? contact.link
-                    : `https://${contact.link}`
-                }
+                key={contact.id}
+                href={link}
                 target="_blank"
                 rel="noopener noreferrer"
+                title={contact.type}
                 style={{
-                  color: "#007bff",
+                  fontSize: "2rem",
+                  padding: "0.8rem",
+                  borderRadius: "50%",
+                  backgroundColor: "rgba(255,255,255,0.6)",
+                  backdropFilter: "blur(8px)",
+                  boxShadow: "0 6px 15px rgba(0,0,0,0.1)",
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "60px",
+                  height: "60px",
                   textDecoration: "none",
-                  fontWeight: 500,
-                  wordBreak: "break-word",
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.15)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
               >
-                {contact.link}
+                {icon}
               </a>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
       </div>
 
+      {/* HEADINGS & ANIMATION STYLES */}
       <style>{`
         .fancy-heading {
           font-size: 3rem;
-          text-align: center;
           text-transform: uppercase;
           color: #00ffff;
           letter-spacing: 2px;

@@ -1,4 +1,3 @@
-// src/admin/components/AdminContact.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db, storage } from "../../firebase";
@@ -21,6 +20,7 @@ const AdminContact = () => {
   const [contacts, setContacts] = useState([]);
   const [newType, setNewType] = useState("");
   const [newLink, setNewLink] = useState("");
+  const [editingContactId, setEditingContactId] = useState(null);
 
   const [cvs, setCVs] = useState([]);
   const [newCV, setNewCV] = useState(null);
@@ -48,16 +48,34 @@ const AdminContact = () => {
     fetchCVs();
   }, []);
 
-  const handleAddContact = async () => {
+  const handleAddOrUpdateContact = async () => {
     if (!newType || !newLink) return;
-    await addDoc(contactsRef, { type: newType, link: newLink });
+
+    if (editingContactId) {
+      const contactRef = doc(db, "contacts", editingContactId);
+      await updateDoc(contactRef, { type: newType, link: newLink });
+      alert("Contact updated successfully!");
+    } else {
+      await addDoc(contactsRef, { type: newType, link: newLink });
+      alert("Contact added successfully!");
+    }
+
     setNewType("");
     setNewLink("");
+    setEditingContactId(null);
     fetchContacts();
-    alert("Contact added successfully!");
+  };
+
+  const handleEditContact = (contact) => {
+    setEditingContactId(contact.id);
+    setNewType(contact.type);
+    setNewLink(contact.link);
   };
 
   const handleDeleteContact = async (id) => {
+    const confirm = window.confirm("Are you sure you want to delete this contact?");
+    if (!confirm) return;
+
     await deleteDoc(doc(db, "contacts", id));
     fetchContacts();
     alert("Contact deleted!");
@@ -114,6 +132,9 @@ const AdminContact = () => {
   };
 
   const handleDeleteCV = async (id) => {
+    const confirm = window.confirm("Are you sure you want to delete the CV?");
+    if (!confirm) return;
+
     const cv = cvs.find((c) => c.id === id);
     if (cv?.cvUrl) {
       try {
@@ -152,14 +173,14 @@ const AdminContact = () => {
       <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
         <input
           type="text"
-          placeholder="Type (e.g., Email, LinkedIn)"
+          placeholder="Type (e.g., LinkedIn, GitHub)"
           value={newType}
           onChange={(e) => setNewType(e.target.value)}
           style={{
             padding: "0.5rem",
             borderRadius: "8px",
             border: "1px solid #ccc",
-            flex: "1 1 200px"
+            flex: "1 1 200px",
           }}
         />
         <input
@@ -171,44 +192,84 @@ const AdminContact = () => {
             padding: "0.5rem",
             borderRadius: "8px",
             border: "1px solid #ccc",
-            flex: "2 1 300px"
+            flex: "2 1 300px",
           }}
         />
         <button
-          onClick={handleAddContact}
+          onClick={handleAddOrUpdateContact}
           style={{
-            backgroundColor: "#5cb85c",
+            backgroundColor: editingContactId ? "#f0ad4e" : "#5cb85c",
             color: "white",
             border: "none",
             padding: "0.5rem 1rem",
             borderRadius: "8px",
           }}
         >
-          Add Contact
+          {editingContactId ? "Update" : "Add"} Contact
         </button>
+        {editingContactId && (
+          <button
+            onClick={() => {
+              setEditingContactId(null);
+              setNewType("");
+              setNewLink("");
+            }}
+            style={{
+              backgroundColor: "#6c757d",
+              color: "white",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "8px",
+            }}
+          >
+            Cancel
+          </button>
+        )}
       </div>
 
       {/* Contact List */}
       <ul style={{ listStyle: "none", padding: 0 }}>
         {contacts.map((contact) => (
-          <li key={contact.id} style={{
-            padding: "1rem",
-            border: "1px solid #eee",
-            borderRadius: "10px",
-            marginBottom: "1rem",
-            backgroundColor: "#fafafa",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap"
-          }}>
+          <li
+            key={contact.id}
+            style={{
+              padding: "1rem",
+              border: "1px solid #eee",
+              borderRadius: "10px",
+              marginBottom: "1rem",
+              backgroundColor: "#fafafa",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
             <div>
               <strong>{contact.type}:</strong>{" "}
-              <a href={contact.link} target="_blank" rel="noreferrer" style={{ color: "#007BFF" }}>
+              <a
+                href={contact.link}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: "#007BFF" }}
+              >
                 {contact.link}
               </a>
             </div>
             <div style={{ marginTop: "0.5rem" }}>
+              <button
+                onClick={() => handleEditContact(contact)}
+                style={{
+                  backgroundColor: "#5bc0de",
+                  color: "white",
+                  border: "none",
+                  padding: "0.4rem 0.8rem",
+                  borderRadius: "6px",
+                  marginRight: "0.5rem",
+                  cursor: "pointer",
+                }}
+              >
+                Edit
+              </button>
               <button
                 onClick={() => handleDeleteContact(contact.id)}
                 style={{
@@ -227,10 +288,9 @@ const AdminContact = () => {
         ))}
       </ul>
 
-      {/* Divider */}
       <hr style={{ margin: "3rem 0" }} />
 
-      {/* CV Upload Section */}
+      {/* CV Section */}
       <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem" }}>📄 Manage CV Upload</h2>
 
       <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
@@ -290,18 +350,26 @@ const AdminContact = () => {
       {/* CV List */}
       <ul style={{ listStyle: "none", padding: 0 }}>
         {cvs.map((cv) => (
-          <li key={cv.id} style={{
-            padding: "1rem",
-            border: "1px solid #eee",
-            borderRadius: "10px",
-            marginBottom: "1rem",
-            backgroundColor: "#fefefe",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap"
-          }}>
-            <a href={cv.cvUrl} target="_blank" rel="noreferrer" style={{ color: "#28a745" }}>
+          <li
+            key={cv.id}
+            style={{
+              padding: "1rem",
+              border: "1px solid #eee",
+              borderRadius: "10px",
+              marginBottom: "1rem",
+              backgroundColor: "#fefefe",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <a
+              href={cv.cvUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: "#28a745" }}
+            >
               📄 View CV
             </a>
             <div style={{ marginTop: "0.5rem" }}>
