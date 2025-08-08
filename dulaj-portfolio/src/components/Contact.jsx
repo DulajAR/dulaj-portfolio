@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
-import { SiX } from "react-icons/si"; // Twitter (X) icon
-
+import { collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { SiX } from "react-icons/si";
 import {
   FaEnvelope,
   FaPhone,
@@ -14,16 +13,7 @@ import {
 } from "react-icons/fa";
 import contactBg from "../assets/contact.png";
 
-// ✅ Replace Twitter icon with new X logo
-const XLogo = (
-  <img
-    src="https://upload.wikimedia.org/wikipedia/commons/9/95/X_logo_2023.svg"
-    alt="X"
-    style={{ width: "24px", height: "24px", objectFit: "contain" }}
-  />
-);
-
-// ✅ Icon map
+// Icon map
 const iconMap = {
   email: <FaEnvelope style={{ color: "#007bff" }} />,
   phone: <FaPhone style={{ color: "#28a745" }} />,
@@ -32,13 +22,18 @@ const iconMap = {
   website: <FaGlobe style={{ color: "#17a2b8" }} />,
   instagram: <FaInstagram style={{ color: "#e4405f" }} />,
   facebook: <FaFacebook style={{ color: "#3b5998" }} />,
-  x: <SiX style={{ color: "#000000" }} />, // 👈 Consistent style
+  x: <SiX style={{ color: "#000000" }} />,
 };
-
 
 const Contact = () => {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -58,6 +53,28 @@ const Contact = () => {
 
     fetchContacts();
   }, []);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, "messages"), {
+        ...formData,
+        timestamp: serverTimestamp(),
+      });
+      setSuccess("Message sent successfully!");
+      setFormData({ name: "", email: "", message: "" });
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Error sending message:", err);
+    }
+  };
 
   if (loading)
     return (
@@ -99,7 +116,7 @@ const Contact = () => {
     >
       <div
         style={{
-          maxWidth: "800px",
+          maxWidth: "1000px",
           width: "100%",
           backgroundColor: "rgba(255, 255, 255, 0.9)",
           borderRadius: "16px",
@@ -110,17 +127,17 @@ const Contact = () => {
       >
         <h2 className="fancy-heading">📬 CONTACT ME</h2>
         <p style={{ color: "#333", marginBottom: "2rem" }}>
-          Connect with me through any of the platforms below.
+          Connect with me through any of the platforms below or send a message directly.
         </p>
 
-        {/* ICONS GRID */}
+        {/* Contact icons */}
         <div
           style={{
             display: "flex",
             flexWrap: "wrap",
             justifyContent: "center",
             gap: "1.2rem",
-            marginTop: "2rem",
+            marginBottom: "2.5rem",
           }}
         >
           {contacts.map((contact) => {
@@ -147,7 +164,7 @@ const Contact = () => {
                   backgroundColor: "rgba(255,255,255,0.6)",
                   backdropFilter: "blur(8px)",
                   boxShadow: "0 6px 15px rgba(0,0,0,0.1)",
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                  transition: "transform 0.3s ease",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -167,9 +184,83 @@ const Contact = () => {
             );
           })}
         </div>
+
+        {/* Message form */}
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+            maxWidth: "600px",
+            margin: "0 auto",
+          }}
+        >
+          <input
+            type="text"
+            name="name"
+            placeholder="Your Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            style={{
+              padding: "0.8rem",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              fontSize: "1rem",
+            }}
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Your Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            style={{
+              padding: "0.8rem",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              fontSize: "1rem",
+            }}
+          />
+          <textarea
+            name="message"
+            placeholder="Your Message"
+            value={formData.message}
+            onChange={handleChange}
+            required
+            rows="5"
+            style={{
+              padding: "0.8rem",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              fontSize: "1rem",
+              resize: "vertical",
+            }}
+          ></textarea>
+          <button
+            type="submit"
+            style={{
+              padding: "0.8rem",
+              borderRadius: "8px",
+              border: "none",
+              backgroundColor: "#00bcd4",
+              color: "#fff",
+              fontSize: "1.1rem",
+              cursor: "pointer",
+              transition: "background-color 0.3s ease",
+            }}
+          >
+            Send Message
+          </button>
+          {success && (
+            <p style={{ color: "green", marginTop: "0.5rem" }}>{success}</p>
+          )}
+        </form>
       </div>
 
-      {/* HEADINGS & ANIMATION STYLES */}
+      {/* Styles */}
       <style>{`
         .fancy-heading {
           font-size: 3rem;
