@@ -12,6 +12,7 @@ import {
   FaFacebook,
 } from "react-icons/fa";
 import contactBg from "../assets/contact.png";
+import heroImg from "../assets/hero.png"; // ✅ Add this import
 
 // Icon map
 const iconMap = {
@@ -125,7 +126,37 @@ const Contact = () => {
           textAlign: "center",
         }}
       >
-        <h2 className="fancy-heading">📬 CONTACT ME</h2>
+        {/* Updated Heading with Profile Image ABOVE */}
+<div style={{ marginBottom: "2rem" }}>
+  <div style={{ marginBottom: "1rem" }}>
+    <img
+      src={heroImg}
+      alt="Profile"
+      style={{
+        width: "90px",
+        height: "90px",
+        borderRadius: "50%",
+        border: "3px solid #00ffff",
+        boxShadow: "0 0 12px rgba(0, 255, 255, 0.5)",
+      }}
+    />
+  </div>
+  <h2
+    className="fancy-heading"
+    style={{
+      backgroundColor: "#0f172a",
+      padding: "0.6rem 1.2rem",
+      borderRadius: "12px",
+      display: "inline-block",
+      color: "#00ffff",
+      textShadow: "0 0 8px #00ffff",
+    }}
+  >
+    📬 CONTACT ME
+  </h2>
+</div>
+
+
         <p style={{ color: "#333", marginBottom: "2rem" }}>
           Connect with me through any of the platforms below or send a message directly.
         </p>
@@ -265,11 +296,8 @@ const Contact = () => {
         .fancy-heading {
           font-size: 3rem;
           text-transform: uppercase;
-          color: #00ffff;
           letter-spacing: 2px;
-          position: relative;
           animation: textFadeSlideUp 0.6s ease forwards;
-          text-shadow: 0 0 8px #00ffff, 0 0 16px #00ffff;
           user-select: none;
         }
 
