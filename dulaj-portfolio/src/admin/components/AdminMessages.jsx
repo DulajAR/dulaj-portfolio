@@ -299,7 +299,7 @@ const AdminMessages = () => {
           style={{
             fontSize: "22px",
             fontWeight: "600",
-            color: "#dff0d8",
+            color: "#f0e3d8ff",
             marginBottom: "10px",
             textShadow: "0 1px 2px rgba(0,0,0,0.2)",
           }}
@@ -307,7 +307,7 @@ const AdminMessages = () => {
           🆕 New Messages
         </h2>
         {filteredMessages.filter((msg) => !msg.isRead).length === 0 ? (
-          <p style={{ color: "#d0ebd7" }}>No new messages</p>
+          <p style={{ color: "#ebd0ddff" }}>No new messages</p>
         ) : (
           filteredMessages
             .filter((msg) => !msg.isRead)

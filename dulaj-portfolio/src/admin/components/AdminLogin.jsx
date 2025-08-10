@@ -2,17 +2,24 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebase";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AdminLogin = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      onLogin();
+      setSuccess(true);
+
+      // Optional: wait before triggering navigation
+      setTimeout(() => {
+        setSuccess(false);
+        onLogin();
+      }, 1500);
     } catch (error) {
       alert("Login failed: " + error.message);
     }
@@ -77,6 +84,21 @@ const AdminLogin = ({ onLogin }) => {
         </motion.button>
       </motion.form>
 
+      {/* Success Alert */}
+      <AnimatePresence>
+        {success && (
+          <motion.div
+            className="success-alert"
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            transition={{ duration: 0.4 }}
+          >
+            ✅ Login Successful!
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <style>{`
         .login-container {
           display: flex;
@@ -85,6 +107,7 @@ const AdminLogin = ({ onLogin }) => {
           min-height: 90vh;
           background: linear-gradient(135deg, #4f46e5, #9333ea);
           padding: 2rem;
+          position: relative;
         }
 
         .login-form {
@@ -114,19 +137,16 @@ const AdminLogin = ({ onLogin }) => {
           color: #555;
         }
 
-        /* Fix: Make inputs and button uniform size and box model */
         input, button {
-          box-sizing: border-box;      /* Include padding and border in width/height */
-          width: 100%;                 /* Full width */
-          height: 45px;                /* Fixed height */
+          box-sizing: border-box;
+          width: 100%;
+          height: 45px;
           padding: 10px 12px;
           font-size: 1rem;
           border-radius: 8px;
           border: 1px solid #ccc;
           font-family: inherit;
-          line-height: 1.2;
           transition: all 0.3s ease;
-          display: block;
         }
 
         input:focus {
@@ -135,22 +155,24 @@ const AdminLogin = ({ onLogin }) => {
           box-shadow: 0 0 8px rgba(79, 70, 229, 0.4);
         }
 
-        /* Button specific overrides */
         button.login-button {
           border: none;
           background-color: #4f46e5;
           color: white;
           cursor: pointer;
-          padding: 0 12px; /* Override horizontal padding to match inputs */
-          /* line-height to vertically center text */
-          line-height: 45px;
-          text-align: center;
           font-weight: 600;
-          user-select: none;
-          /* Remove default button styles */
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          appearance: none;
+        }
+
+        .success-alert {
+          position: absolute;
+          bottom: 20px;
+          background: #22c55e;
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          font-size: 1rem;
+          font-weight: 600;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
       `}</style>
     </div>
