@@ -7,7 +7,6 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
 
 const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
@@ -17,7 +16,6 @@ const AdminMessages = () => {
     email: "",
     date: "", // date in yyyy-mm-dd format
   });
-  const navigate = useNavigate();
 
   const fetchMessages = async () => {
     const querySnapshot = await getDocs(collection(db, "messages"));
@@ -163,7 +161,9 @@ const AdminMessages = () => {
               Read
             </span>
             <button
-              onClick={() => window.open(`mailto:${msg.email}?subject=Re:%20Your%20Message`, "_blank")}
+              onClick={() =>
+                window.open(`mailto:${msg.email}?subject=Re:%20Your%20Message`, "_blank")
+              }
               style={{
                 backgroundColor: "#007bff",
                 color: "#fff",
@@ -195,7 +195,14 @@ const AdminMessages = () => {
   );
 
   return (
-    <div style={{ padding: "30px 20px", backgroundColor: "#f4f7f9", minHeight: "100vh" }}>
+    <div
+      style={{
+        padding: "30px 20px",
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)",
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      }}
+    >
       {/* Header */}
       <div
         style={{
@@ -203,28 +210,20 @@ const AdminMessages = () => {
           justifyContent: "center",
           alignItems: "center",
           marginBottom: "30px",
-          position: "relative",
           animation: "fadeIn 0.6s ease",
         }}
       >
-        <h1 style={{ fontSize: "26px", fontWeight: "bold", color: "#333", textAlign: "center" }}>
-          Contact Me - Admin Messages
-        </h1>
-        <button
-          onClick={() => navigate("/admin/dashboard")}
+        <h1
           style={{
-            position: "absolute",
-            right: 0,
-            backgroundColor: "#333",
+            fontSize: "26px",
+            fontWeight: "bold",
             color: "#fff",
-            padding: "10px 20px",
-            borderRadius: "20px",
-            border: "none",
-            cursor: "pointer",
+            textAlign: "center",
+            textShadow: "0 2px 4px rgba(0,0,0,0.3)",
           }}
         >
-          ⬅ Back to Dashboard
-        </button>
+          Contact Me - Admin Messages
+        </h1>
       </div>
 
       {/* Filters */}
@@ -300,14 +299,15 @@ const AdminMessages = () => {
           style={{
             fontSize: "22px",
             fontWeight: "600",
-            color: "#5cb85c",
+            color: "#dff0d8",
             marginBottom: "10px",
+            textShadow: "0 1px 2px rgba(0,0,0,0.2)",
           }}
         >
           🆕 New Messages
         </h2>
         {filteredMessages.filter((msg) => !msg.isRead).length === 0 ? (
-          <p style={{ color: "#888" }}>No new messages</p>
+          <p style={{ color: "#d0ebd7" }}>No new messages</p>
         ) : (
           filteredMessages
             .filter((msg) => !msg.isRead)
@@ -321,14 +321,15 @@ const AdminMessages = () => {
           style={{
             fontSize: "22px",
             fontWeight: "600",
-            color: "#555",
+            color: "#e0e0e0",
             marginBottom: "10px",
+            textShadow: "0 1px 2px rgba(0,0,0,0.2)",
           }}
         >
           📖 Read Messages
         </h2>
         {filteredMessages.filter((msg) => msg.isRead).length === 0 ? (
-          <p style={{ color: "#aaa" }}>No read messages</p>
+          <p style={{ color: "#bbb" }}>No read messages</p>
         ) : (
           filteredMessages
             .filter((msg) => msg.isRead)

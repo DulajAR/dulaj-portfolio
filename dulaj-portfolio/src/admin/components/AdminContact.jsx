@@ -151,174 +151,96 @@ const AdminContact = () => {
   };
 
   return (
-    <section style={{ padding: "2rem", maxWidth: "800px", margin: "auto" }}>
-      <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem" }}>📇 Manage Contact Links</h2>
-
-      <button
-        onClick={() => navigate("/admin/dashboard")}
+    <section
+      style={{
+        minHeight: "100vh",
+        padding: "3rem 1rem",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        display: "flex",
+        justifyContent: "center",
+        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      }}
+    >
+      <div
         style={{
-          marginBottom: "2rem",
-          padding: "0.5rem 1rem",
-          backgroundColor: "#6c757d",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
+          maxWidth: "800px",
+          width: "100%",
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          padding: "2.5rem",
+          borderRadius: "14px",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
         }}
       >
-        ⬅ Back to Dashboard
-      </button>
+        <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", color: "#333" }}>
+          📇 Manage Contact Links
+        </h2>
 
-      {/* Contact Links Form */}
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-        <input
-          type="text"
-          placeholder="Type (e.g., LinkedIn, GitHub)"
-          value={newType}
-          onChange={(e) => setNewType(e.target.value)}
-          style={{
-            padding: "0.5rem",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-            flex: "1 1 200px",
-          }}
-        />
-        <input
-          type="text"
-          placeholder="Link"
-          value={newLink}
-          onChange={(e) => setNewLink(e.target.value)}
-          style={{
-            padding: "0.5rem",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-            flex: "2 1 300px",
-          }}
-        />
         <button
-          onClick={handleAddOrUpdateContact}
+          onClick={() => navigate("/admin/dashboard")}
           style={{
-            backgroundColor: editingContactId ? "#f0ad4e" : "#5cb85c",
-            color: "white",
-            border: "none",
+            marginBottom: "2rem",
             padding: "0.5rem 1rem",
+            backgroundColor: "#6c757d",
+            color: "#fff",
+            border: "none",
             borderRadius: "8px",
+            cursor: "pointer",
           }}
         >
-          {editingContactId ? "Update" : "Add"} Contact
+          ⬅ Back to Dashboard
         </button>
-        {editingContactId && (
-          <button
-            onClick={() => {
-              setEditingContactId(null);
-              setNewType("");
-              setNewLink("");
-            }}
+
+        {/* Contact Links Form */}
+        <div
+          style={{
+            display: "flex",
+            gap: "1rem",
+            marginBottom: "1.5rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Type (e.g., LinkedIn, GitHub)"
+            value={newType}
+            onChange={(e) => setNewType(e.target.value)}
             style={{
-              backgroundColor: "#6c757d",
+              padding: "0.5rem",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              flex: "1 1 200px",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Link"
+            value={newLink}
+            onChange={(e) => setNewLink(e.target.value)}
+            style={{
+              padding: "0.5rem",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              flex: "2 1 300px",
+            }}
+          />
+          <button
+            onClick={handleAddOrUpdateContact}
+            style={{
+              backgroundColor: editingContactId ? "#f0ad4e" : "#5cb85c",
               color: "white",
               border: "none",
               padding: "0.5rem 1rem",
               borderRadius: "8px",
             }}
           >
-            Cancel
+            {editingContactId ? "Update" : "Add"} Contact
           </button>
-        )}
-      </div>
-
-      {/* Contact List */}
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {contacts.map((contact) => (
-          <li
-            key={contact.id}
-            style={{
-              padding: "1rem",
-              border: "1px solid #eee",
-              borderRadius: "10px",
-              marginBottom: "1rem",
-              backgroundColor: "#fafafa",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <div>
-              <strong>{contact.type}:</strong>{" "}
-              <a
-                href={contact.link}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: "#007BFF" }}
-              >
-                {contact.link}
-              </a>
-            </div>
-            <div style={{ marginTop: "0.5rem" }}>
-              <button
-                onClick={() => handleEditContact(contact)}
-                style={{
-                  backgroundColor: "#5bc0de",
-                  color: "white",
-                  border: "none",
-                  padding: "0.4rem 0.8rem",
-                  borderRadius: "6px",
-                  marginRight: "0.5rem",
-                  cursor: "pointer",
-                }}
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDeleteContact(contact.id)}
-                style={{
-                  backgroundColor: "#d9534f",
-                  color: "white",
-                  border: "none",
-                  padding: "0.4rem 0.8rem",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      <hr style={{ margin: "3rem 0" }} />
-
-      {/* CV Section */}
-      <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem" }}>📄 Manage CV Upload</h2>
-
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-        <input
-          type="file"
-          accept=".pdf,.doc,.docx"
-          onChange={(e) => setNewCV(e.target.files[0])}
-          style={{ flex: "1 1 300px" }}
-        />
-
-        {editingCVId ? (
-          <>
-            <button
-              onClick={() => handleUpdateCV(editingCVId)}
-              style={{
-                backgroundColor: "#f0ad4e",
-                color: "white",
-                border: "none",
-                padding: "0.5rem 1rem",
-                borderRadius: "8px",
-              }}
-            >
-              Update CV
-            </button>
+          {editingContactId && (
             <button
               onClick={() => {
-                setEditingCVId(null);
-                setNewCV(null);
+                setEditingContactId(null);
+                setNewType("");
+                setNewLink("");
               }}
               style={{
                 backgroundColor: "#6c757d",
@@ -330,83 +252,199 @@ const AdminContact = () => {
             >
               Cancel
             </button>
-          </>
-        ) : (
-          <button
-            onClick={handleAddCV}
-            style={{
-              backgroundColor: "#0275d8",
-              color: "white",
-              border: "none",
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-            }}
-          >
-            Upload CV
-          </button>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* CV List */}
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {cvs.map((cv) => (
-          <li
-            key={cv.id}
-            style={{
-              padding: "1rem",
-              border: "1px solid #eee",
-              borderRadius: "10px",
-              marginBottom: "1rem",
-              backgroundColor: "#fefefe",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <a
-              href={cv.cvUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: "#28a745" }}
+        {/* Contact List */}
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {contacts.map((contact) => (
+            <li
+              key={contact.id}
+              style={{
+                padding: "1rem",
+                border: "1px solid #eee",
+                borderRadius: "10px",
+                marginBottom: "1rem",
+                backgroundColor: "#fafafa",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
             >
-              📄 View CV
-            </a>
-            <div style={{ marginTop: "0.5rem" }}>
+              <div>
+                <strong>{contact.type}:</strong>{" "}
+                <a
+                  href={contact.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: "#007BFF" }}
+                >
+                  {contact.link}
+                </a>
+              </div>
+              <div style={{ marginTop: "0.5rem" }}>
+                <button
+                  onClick={() => handleEditContact(contact)}
+                  style={{
+                    backgroundColor: "#5bc0de",
+                    color: "white",
+                    border: "none",
+                    padding: "0.4rem 0.8rem",
+                    borderRadius: "6px",
+                    marginRight: "0.5rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteContact(contact.id)}
+                  style={{
+                    backgroundColor: "#d9534f",
+                    color: "white",
+                    border: "none",
+                    padding: "0.4rem 0.8rem",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <hr style={{ margin: "3rem 0" }} />
+
+        {/* CV Section */}
+        <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", color: "#333" }}>
+          📄 Manage CV Upload
+        </h2>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "1rem",
+            marginBottom: "1.5rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx"
+            onChange={(e) => setNewCV(e.target.files[0])}
+            style={{ flex: "1 1 300px" }}
+          />
+
+          {editingCVId ? (
+            <>
+              <button
+                onClick={() => handleUpdateCV(editingCVId)}
+                style={{
+                  backgroundColor: "#f0ad4e",
+                  color: "white",
+                  border: "none",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "8px",
+                }}
+              >
+                Update CV
+              </button>
               <button
                 onClick={() => {
-                  setEditingCVId(cv.id);
+                  setEditingCVId(null);
                   setNewCV(null);
                 }}
                 style={{
-                  marginRight: "0.5rem",
-                  backgroundColor: "#5bc0de",
+                  backgroundColor: "#6c757d",
                   color: "white",
                   border: "none",
-                  padding: "0.4rem 0.8rem",
-                  borderRadius: "6px",
-                  cursor: "pointer",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "8px",
                 }}
               >
-                Edit
+                Cancel
               </button>
-              <button
-                onClick={() => handleDeleteCV(cv.id)}
-                style={{
-                  backgroundColor: "#d9534f",
-                  color: "white",
-                  border: "none",
-                  padding: "0.4rem 0.8rem",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                }}
+            </>
+          ) : (
+            <button
+              onClick={handleAddCV}
+              style={{
+                backgroundColor: "#0275d8",
+                color: "white",
+                border: "none",
+                padding: "0.5rem 1rem",
+                borderRadius: "8px",
+              }}
+            >
+              Upload CV
+            </button>
+          )}
+        </div>
+
+        {/* CV List */}
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {cvs.map((cv) => (
+            <li
+              key={cv.id}
+              style={{
+                padding: "1rem",
+                border: "1px solid #eee",
+                borderRadius: "10px",
+                marginBottom: "1rem",
+                backgroundColor: "#fefefe",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <a
+                href={cv.cvUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: "#28a745" }}
               >
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+                📄 View CV
+              </a>
+              <div style={{ marginTop: "0.5rem" }}>
+                <button
+                  onClick={() => {
+                    setEditingCVId(cv.id);
+                    setNewCV(null);
+                  }}
+                  style={{
+                    marginRight: "0.5rem",
+                    backgroundColor: "#5bc0de",
+                    color: "white",
+                    border: "none",
+                    padding: "0.4rem 0.8rem",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteCV(cv.id)}
+                  style={{
+                    backgroundColor: "#d9534f",
+                    color: "white",
+                    border: "none",
+                    padding: "0.4rem 0.8rem",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 };
