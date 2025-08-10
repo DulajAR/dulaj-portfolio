@@ -65,7 +65,7 @@ const AdminDashboard = () => {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
-        <h1>Dulaj Portfolio Admin Dashboard</h1>
+        <h1>Dulaj Portfolio – Admin Panel</h1>
 
         {/* Digital clock */}
         <div className="digital-clock" aria-label="Current time" role="timer">
