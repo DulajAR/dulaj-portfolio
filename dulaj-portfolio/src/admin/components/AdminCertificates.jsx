@@ -15,6 +15,7 @@ import {
   deleteObject
 } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AdminCertificates = () => {
   const [certificates, setCertificates] = useState([]);
@@ -97,110 +98,230 @@ const AdminCertificates = () => {
   const handleDelete = async (cert) => {
     if (window.confirm("Are you sure you want to delete this certificate?")) {
       await deleteDoc(doc(db, "certificates", cert.id));
-      const storageRef = ref(storage, `certificates/${cert.fileUrl.split("%2F")[1].split("?")[0]}`);
-      await deleteObject(storageRef).catch(() => {});
+      // Attempt to delete file from storage
+      try {
+        const fileName = cert.fileUrl.split("%2F")[1].split("?")[0];
+        const storageRef = ref(storage, `certificates/${fileName}`);
+        await deleteObject(storageRef);
+      } catch {}
       fetchCertificates();
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.1 } }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1 },
+    hover: { scale: 1.03, boxShadow: "0 8px 20px rgba(0,0,0,0.15)" },
+    tap: { scale: 0.97 }
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, backgroundColor: "#3b82f6" },
+    tap: { scale: 0.95 }
+  };
+
   return (
-    <div style={styles.container}>
-      <button onClick={() => navigate("/admin/dashboard")} style={styles.backBtn}>
-        ← Back to Dashboard
-      </button>
+    <div style={styles.pageContainer}>
+      <div style={styles.contentWrapper}>
+        <motion.button
+          onClick={() => navigate("/admin/dashboard")}
+          style={styles.backBtn}
+          whileHover={{ scale: 1.05, backgroundColor: "#cbd5e1" }}
+          whileTap={{ scale: 0.95 }}
+        >
+          ← Back to Dashboard
+        </motion.button>
 
-      <h2 style={styles.title}>
-        {editingId ? "Edit Certificate" : "Add New Certificate"}
-      </h2>
+        <motion.h2
+          style={styles.title}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {editingId ? "Edit Certificate" : "Add New Certificate"}
+        </motion.h2>
 
-      <div style={styles.form}>
-        <input
-          type="text"
-          placeholder="Certificate Title"
-          value={newCert.title}
-          onChange={(e) => setNewCert({ ...newCert, title: e.target.value })}
-          style={styles.input}
-        />
-        <textarea
-          placeholder="Short Description"
-          value={newCert.description}
-          onChange={(e) => setNewCert({ ...newCert, description: e.target.value })}
-          style={styles.textarea}
-        />
-        <input
-          type="file"
-          accept="image/*,.pdf"
-          onChange={(e) => setNewCert({ ...newCert, file: e.target.files[0] })}
-          style={styles.input}
-        />
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button onClick={handleUpload} style={styles.uploadButton}>
-            {editingId ? "Update" : "Upload"} Certificate
-          </button>
-          {editingId && (
-            <button onClick={handleCancelEdit} style={styles.cancelButton}>
-              Cancel
-            </button>
+        <motion.div
+          style={styles.form}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <input
+            type="text"
+            placeholder="Certificate Title"
+            value={newCert.title}
+            onChange={(e) => setNewCert({ ...newCert, title: e.target.value })}
+            style={styles.input}
+          />
+          <textarea
+            placeholder="Short Description"
+            value={newCert.description}
+            onChange={(e) => setNewCert({ ...newCert, description: e.target.value })}
+            style={styles.textarea}
+          />
+          <input
+            type="file"
+            accept="image/*,.pdf"
+            onChange={(e) => setNewCert({ ...newCert, file: e.target.files[0] })}
+            style={styles.input}
+          />
+          <div style={{ display: "flex", gap: "10px" }}>
+            <motion.button
+              onClick={handleUpload}
+              style={styles.uploadButton}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              {editingId ? "Update" : "Upload"} Certificate
+            </motion.button>
+            {editingId && (
+              <motion.button
+                onClick={handleCancelEdit}
+                style={styles.cancelButton}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Cancel
+              </motion.button>
+            )}
+          </div>
+        </motion.div>
+
+        <motion.h3
+          style={{ marginTop: "3rem", marginBottom: "1rem", color: "white", textShadow: "0 0 5px rgba(0,0,0,0.7)" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          📜 Uploaded Certificates
+        </motion.h3>
+
+        <motion.div
+          style={styles.grid}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {certificates.map(cert => (
+            <motion.div
+              key={cert.id}
+              style={styles.card}
+              variants={cardVariants}
+              whileHover="hover"
+              whileTap="tap"
+              onClick={() => setPreviewCert(cert)}
+            >
+              <h3 style={{ color: "#4f46e5", textShadow: "0 0 6px #a5b4fc" }}>{cert.title}</h3>
+              <p>{cert.description}</p>
+              {cert.fileType === "image" ? (
+                <img src={cert.fileUrl} alt="certificate" style={styles.image} />
+              ) : (
+                <iframe
+                  src={cert.fileUrl}
+                  title="PDF Preview"
+                  style={styles.pdfPreview}
+                  frameBorder="0"
+                />
+              )}
+              <div style={{ marginTop: "0.5rem", display: "flex", gap: "10px", justifyContent: "center" }}>
+                <motion.button
+                  onClick={(e) => { e.stopPropagation(); handleEdit(cert); }}
+                  style={styles.editButton}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Edit
+                </motion.button>
+                <motion.button
+                  onClick={(e) => { e.stopPropagation(); handleDelete(cert); }}
+                  style={styles.deleteButton}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Delete
+                </motion.button>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <AnimatePresence>
+          {previewCert && (
+            <motion.div
+              style={styles.modalOverlay}
+              onClick={() => setPreviewCert(null)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                style={styles.modalContent}
+                onClick={(e) => e.stopPropagation()}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h2>{previewCert.title}</h2>
+                <p>{previewCert.description}</p>
+                {previewCert.fileType === "image" ? (
+                  <img src={previewCert.fileUrl} alt="Full Certificate" style={{ width: "100%", borderRadius: "10px" }} />
+                ) : (
+                  <iframe
+                    src={previewCert.fileUrl}
+                    title="PDF Full View"
+                    style={{ width: "100%", height: "600px", borderRadius: "10px" }}
+                  />
+                )}
+                <motion.button
+                  onClick={() => setPreviewCert(null)}
+                  style={styles.closeButton}
+                  whileHover={{ scale: 1.05, backgroundColor: "#4338e5" }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Close
+                </motion.button>
+              </motion.div>
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
       </div>
-
-      <h3 style={{ marginTop: "3rem", marginBottom: "1rem" }}>📜 Uploaded Certificates</h3>
-      <div style={styles.grid}>
-        {certificates.map(cert => (
-          <div key={cert.id} style={styles.card} onClick={() => setPreviewCert(cert)}>
-            <h3>{cert.title}</h3>
-            <p>{cert.description}</p>
-            {cert.fileType === "image" ? (
-              <img src={cert.fileUrl} alt="certificate" style={styles.image} />
-            ) : (
-              <iframe
-                src={cert.fileUrl}
-                title="PDF Preview"
-                style={styles.pdfPreview}
-                frameBorder="0"
-              />
-            )}
-            <div style={{ marginTop: "0.5rem", display: "flex", gap: "10px" }}>
-              <button onClick={(e) => { e.stopPropagation(); handleEdit(cert); }} style={styles.editButton}>Edit</button>
-              <button onClick={(e) => { e.stopPropagation(); handleDelete(cert); }} style={styles.deleteButton}>Delete</button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* 🔍 Preview Popup */}
-      {previewCert && (
-        <div style={styles.modalOverlay} onClick={() => setPreviewCert(null)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h2>{previewCert.title}</h2>
-            <p>{previewCert.description}</p>
-            {previewCert.fileType === "image" ? (
-              <img src={previewCert.fileUrl} alt="Full Certificate" style={{ width: "100%", borderRadius: "10px" }} />
-            ) : (
-              <iframe
-                src={previewCert.fileUrl}
-                title="PDF Full View"
-                style={{ width: "100%", height: "600px", borderRadius: "10px" }}
-              />
-            )}
-            <button onClick={() => setPreviewCert(null)} style={styles.closeButton}>Close</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
 const styles = {
-  container: {
-    maxWidth: "900px",
-    margin: "2rem auto",
-    padding: "1.5rem",
-    background: "#fff",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+  pageContainer: {
+    minHeight: "100vh",
+    width: "100vw",
+    background: "linear-gradient(135deg, #667eea, #764ba2)", // Beautiful gradient background
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    padding: "2rem 1rem",
+    boxSizing: "border-box",
     fontFamily: "Arial, sans-serif"
+  },
+  contentWrapper: {
+    maxWidth: "900px",
+    width: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.85)", // Slightly transparent white
+    borderRadius: "12px",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
+    padding: "2rem",
+    marginBottom: "2rem",
+    color: "#1a202c" // Dark text for readability
   },
   backBtn: {
     backgroundColor: "#e2e8f0",
@@ -260,12 +381,13 @@ const styles = {
   },
   card: {
     padding: "1rem",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "white",
     borderRadius: "10px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
     position: "relative",
     textAlign: "center",
-    cursor: "pointer"
+    cursor: "pointer",
+    color: "#1a202c"
   },
   image: {
     width: "100%",
