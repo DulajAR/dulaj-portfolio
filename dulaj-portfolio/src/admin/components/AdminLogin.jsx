@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebase";
+import { motion } from "framer-motion";
 
 const AdminLogin = ({ onLogin }) => {
   const [email, setEmail] = useState("");
@@ -11,7 +12,7 @@ const AdminLogin = ({ onLogin }) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      onLogin(); // Success callback
+      onLogin();
     } catch (error) {
       alert("Login failed: " + error.message);
     }
@@ -19,10 +20,27 @@ const AdminLogin = ({ onLogin }) => {
 
   return (
     <div className="login-container">
-      <form onSubmit={handleSubmit} className="login-form">
-        <h2>Admin Login</h2>
+      <motion.form
+        onSubmit={handleSubmit}
+        className="login-form"
+        initial={{ opacity: 0, scale: 0.9, y: 50 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <motion.h2
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          🔑 Admin Login
+        </motion.h2>
 
-        <div className="form-group">
+        <motion.div
+          className="form-group"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+        >
           <label>Email</label>
           <input
             type="email"
@@ -31,9 +49,14 @@ const AdminLogin = ({ onLogin }) => {
             required
             placeholder="admin@example.com"
           />
-        </div>
+        </motion.div>
 
-        <div className="form-group">
+        <motion.div
+          className="form-group"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+        >
           <label>Password</label>
           <input
             type="password"
@@ -42,27 +65,33 @@ const AdminLogin = ({ onLogin }) => {
             required
             placeholder="Enter your password"
           />
-        </div>
+        </motion.div>
 
-        <button type="submit" className="login-button">Login</button>
-      </form>
+        <motion.button
+          type="submit"
+          className="login-button"
+          whileHover={{ scale: 1.05, backgroundColor: "#4338ca" }}
+          whileTap={{ scale: 0.95 }}
+        >
+          Login
+        </motion.button>
+      </motion.form>
 
-      {/* Modern CSS */}
       <style>{`
         .login-container {
           display: flex;
           justify-content: center;
           align-items: center;
           min-height: 90vh;
-          background: linear-gradient(135deg, #f0f0f0, #dcdcdc);
+          background: linear-gradient(135deg, #4f46e5, #9333ea);
           padding: 2rem;
         }
 
         .login-form {
           background: #fff;
           padding: 2rem 2.5rem;
-          border-radius: 12px;
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+          border-radius: 16px;
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
           max-width: 400px;
           width: 100%;
         }
@@ -70,7 +99,8 @@ const AdminLogin = ({ onLogin }) => {
         .login-form h2 {
           text-align: center;
           margin-bottom: 1.5rem;
-          color: #333;
+          color: #4f46e5;
+          font-size: 1.8rem;
         }
 
         .form-group {
@@ -84,35 +114,43 @@ const AdminLogin = ({ onLogin }) => {
           color: #555;
         }
 
-        .form-group input {
-          width: 100%;
+        /* Fix: Make inputs and button uniform size and box model */
+        input, button {
+          box-sizing: border-box;      /* Include padding and border in width/height */
+          width: 100%;                 /* Full width */
+          height: 45px;                /* Fixed height */
           padding: 10px 12px;
-          border: 1px solid #ccc;
-          border-radius: 8px;
           font-size: 1rem;
-          transition: border-color 0.3s;
+          border-radius: 8px;
+          border: 1px solid #ccc;
+          font-family: inherit;
+          line-height: 1.2;
+          transition: all 0.3s ease;
+          display: block;
         }
 
-        .form-group input:focus {
+        input:focus {
           outline: none;
           border-color: #4f46e5;
-          box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+          box-shadow: 0 0 8px rgba(79, 70, 229, 0.4);
         }
 
-        .login-button {
-          width: 100%;
-          padding: 10px;
+        /* Button specific overrides */
+        button.login-button {
+          border: none;
           background-color: #4f46e5;
           color: white;
-          font-size: 1rem;
-          border: none;
-          border-radius: 8px;
           cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-
-        .login-button:hover {
-          background-color: #4338ca;
+          padding: 0 12px; /* Override horizontal padding to match inputs */
+          /* line-height to vertically center text */
+          line-height: 45px;
+          text-align: center;
+          font-weight: 600;
+          user-select: none;
+          /* Remove default button styles */
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
         }
       `}</style>
     </div>

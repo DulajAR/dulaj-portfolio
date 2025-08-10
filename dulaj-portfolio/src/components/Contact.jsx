@@ -12,7 +12,7 @@ import {
   FaFacebook,
 } from "react-icons/fa";
 import contactBg from "../assets/contact.png";
-import heroImg from "../assets/hero.png"; // ✅ Add this import
+import heroImg from "../assets/hero.png"; // ✅ Profile image
 
 // Icon map
 const iconMap = {
@@ -69,8 +69,14 @@ const Contact = () => {
         ...formData,
         timestamp: serverTimestamp(),
       });
-      setSuccess("Message sent successfully!");
+
+      // ✅ Show success alert
+      setSuccess("✅ Your message has been sent successfully!");
+
+      // Reset form
       setFormData({ name: "", email: "", message: "" });
+
+      // Hide after 3 seconds
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       console.error("Error sending message:", err);
@@ -126,36 +132,35 @@ const Contact = () => {
           textAlign: "center",
         }}
       >
-        {/* Updated Heading with Profile Image ABOVE */}
-<div style={{ marginBottom: "2rem" }}>
-  <div style={{ marginBottom: "1rem" }}>
-    <img
-      src={heroImg}
-      alt="Profile"
-      style={{
-        width: "90px",
-        height: "90px",
-        borderRadius: "50%",
-        border: "3px solid #00ffff",
-        boxShadow: "0 0 12px rgba(0, 255, 255, 0.5)",
-      }}
-    />
-  </div>
-  <h2
-    className="fancy-heading"
-    style={{
-      backgroundColor: "#0f172a",
-      padding: "0.6rem 1.2rem",
-      borderRadius: "12px",
-      display: "inline-block",
-      color: "#00ffff",
-      textShadow: "0 0 8px #00ffff",
-    }}
-  >
-    📬 CONTACT ME
-  </h2>
-</div>
-
+        {/* Updated Heading with Profile Image */}
+        <div style={{ marginBottom: "2rem" }}>
+          <div style={{ marginBottom: "1rem" }}>
+            <img
+              src={heroImg}
+              alt="Profile"
+              style={{
+                width: "90px",
+                height: "90px",
+                borderRadius: "50%",
+                border: "3px solid #00ffff",
+                boxShadow: "0 0 12px rgba(0, 255, 255, 0.5)",
+              }}
+            />
+          </div>
+          <h2
+            className="fancy-heading"
+            style={{
+              backgroundColor: "#0f172a",
+              padding: "0.6rem 1.2rem",
+              borderRadius: "12px",
+              display: "inline-block",
+              color: "#00ffff",
+              textShadow: "0 0 8px #00ffff",
+            }}
+          >
+            📬 CONTACT ME
+          </h2>
+        </div>
 
         <p style={{ color: "#333", marginBottom: "2rem" }}>
           Connect with me through any of the platforms below or send a message directly.
@@ -285,8 +290,22 @@ const Contact = () => {
           >
             Send Message
           </button>
+
+          {/* ✅ Success Alert */}
           {success && (
-            <p style={{ color: "green", marginTop: "0.5rem" }}>{success}</p>
+            <div
+              style={{
+                backgroundColor: "#d4edda",
+                color: "#155724",
+                padding: "0.8rem",
+                borderRadius: "8px",
+                border: "1px solid #c3e6cb",
+                marginTop: "1rem",
+                animation: "fadeIn 0.3s ease-in-out",
+              }}
+            >
+              {success}
+            </div>
           )}
         </form>
       </div>
@@ -320,6 +339,11 @@ const Contact = () => {
         @keyframes underlineGrow {
           from { width: 0; }
           to { width: 60px; }
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-5px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 768px) {
