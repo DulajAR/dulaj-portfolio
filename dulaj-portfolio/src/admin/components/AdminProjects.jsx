@@ -21,6 +21,8 @@ import DOMPurify from "dompurify";
 const AdminProjects = () => {
   const [projects, setProjects] = useState([]);
   const [title, setTitle] = useState("");
+  const [summary, setSummary] = useState("");
+  const [technologies, setTechnologies] = useState("");
   const [description, setDescription] = useState("");
   const [mediaFiles, setMediaFiles] = useState([]);
   const [mediaPreviews, setMediaPreviews] = useState([]);
@@ -58,7 +60,6 @@ const AdminProjects = () => {
   const handleRemoveMedia = (index) => {
     setMediaPreviews((prev) => prev.filter((_, i) => i !== index));
     setMediaFiles((prev) => {
-      // Count how many new media items appear before the index
       const newPreviewsBefore = mediaPreviews
         .slice(0, index)
         .filter((p) => p.isNew).length;
@@ -81,7 +82,7 @@ const AdminProjects = () => {
   };
 
   const handleAddOrUpdate = async () => {
-    if (!title.trim() || !description.trim()) {
+    if (!title.trim() || !description.trim() || !summary.trim() || !technologies.trim()) {
       alert("Please fill all required fields.");
       return;
     }
@@ -94,7 +95,6 @@ const AdminProjects = () => {
 
       let finalMedia = [];
       if (editingId) {
-        // Keep old media that were not removed
         const oldMedia = mediaPreviews.filter((p) => !p.isNew).map((p) => ({
           url: p.url,
           type:
@@ -110,7 +110,6 @@ const AdminProjects = () => {
           (m) => !finalMedia.some((fm) => fm.url === m.url)
         );
 
-        // Delete removed media files from storage
         await Promise.all(
           removedMedia.map(async (m) => {
             try {
@@ -123,6 +122,8 @@ const AdminProjects = () => {
         const docRef = doc(db, "projects", editingId);
         await updateDoc(docRef, {
           title,
+          summary,
+          technologies,
           description: DOMPurify.sanitize(description),
           media: finalMedia,
           timestamp: new Date(),
@@ -133,6 +134,8 @@ const AdminProjects = () => {
         finalMedia = uploadedMedia;
         await addDoc(projectsRef, {
           title,
+          summary,
+          technologies,
           description: DOMPurify.sanitize(description),
           media: finalMedia,
           timestamp: new Date(),
@@ -141,6 +144,8 @@ const AdminProjects = () => {
       }
 
       setTitle("");
+      setSummary("");
+      setTechnologies("");
       setDescription("");
       setMediaFiles([]);
       setMediaPreviews([]);
@@ -153,6 +158,8 @@ const AdminProjects = () => {
 
   const handleEdit = (project) => {
     setTitle(project.title);
+    setSummary(project.summary || "");
+    setTechnologies(project.technologies || "");
     setDescription(project.description);
     if (project.media && project.media.length > 0) {
       setMediaPreviews(project.media.map((m) => ({ url: m.url, isNew: false })));
@@ -189,8 +196,7 @@ const AdminProjects = () => {
       style={{
         minHeight: "100vh",
         padding: "2rem 1rem",
-        background:
-          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         display: "flex",
         justifyContent: "center",
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
@@ -237,6 +243,33 @@ const AdminProjects = () => {
               border: "1px solid #ccc",
             }}
           />
+
+          <input
+            type="text"
+            placeholder="Short Description Summary"
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            style={{
+              padding: 10,
+              fontSize: 16,
+              borderRadius: 8,
+              border: "1px solid #ccc",
+            }}
+          />
+
+          <input
+            type="text"
+            placeholder="Technologies Used (comma-separated)"
+            value={technologies}
+            onChange={(e) => setTechnologies(e.target.value)}
+            style={{
+              padding: 10,
+              fontSize: 16,
+              borderRadius: 8,
+              border: "1px solid #ccc",
+            }}
+          />
+
           <div
             contentEditable
             suppressContentEditableWarning
@@ -361,6 +394,8 @@ const AdminProjects = () => {
               }}
             >
               <h3 style={{ marginBottom: "0.5rem", color: "#333" }}>{project.title}</h3>
+              <p><strong>Summary:</strong> {project.summary}</p>
+              <p><strong>Technologies:</strong> {project.technologies}</p>
               <div dangerouslySetInnerHTML={{ __html: project.description }} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                 {project.media &&

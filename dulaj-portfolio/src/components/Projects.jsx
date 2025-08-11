@@ -3,6 +3,16 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import backgroundImage from "../assets/project.png";
 
+// Example tech icons - customize or add more here
+const techIcons = {
+  React: "⚛️",
+  "React + Vite": "⚛️✨",
+  Firebase: "🔥",
+  Cloudinary: "☁️",
+  JavaScript: "🟨",
+  // add your own...
+};
+
 const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [mediaIndices, setMediaIndices] = useState({});
@@ -18,6 +28,7 @@ const Projects = () => {
           id: doc.id,
           ...doc.data(),
         }));
+        console.log("Fetched projects:", data);
         setProjects(data);
         setLoading(false);
       } catch (err) {
@@ -73,7 +84,6 @@ const Projects = () => {
     return clean.replace(/\n/g, "<br>");
   };
 
-  // 👨‍💻 Loading state
   if (loading) {
     return (
       <section
@@ -125,65 +135,59 @@ const Projects = () => {
           const currentIndex = mediaIndices[project.id] || 0;
           const media = project.media?.[currentIndex];
 
+          const techArray = Array.isArray(project.technologies)
+            ? project.technologies
+            : typeof project.technologies === "string"
+            ? project.technologies
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [];
+
           return (
             <div
               key={project.id}
               onClick={() => setSelectedProject(project)}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "10px",
-                padding: "16px",
-                backgroundColor: "#ffffffcc",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                cursor: "pointer",
-                transition: "transform 0.2s",
-              }}
-              onMouseOver={(e) =>
-                (e.currentTarget.style.transform = "scale(1.02)")
-              }
-              onMouseOut={(e) =>
-                (e.currentTarget.style.transform = "scale(1)")
-              }
+              className="project-card"
             >
-              <h3 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>
-                {project.title}
-              </h3>
+              <h3>{project.title}</h3>
 
               {media ? (
                 media.type.startsWith("video") ? (
-                  <video
-                    src={media.url}
-                    controls
-                    style={{
-                      width: "100%",
-                      borderRadius: 8,
-                      maxHeight: 180,
-                    }}
-                  />
+                  <video src={media.url} controls className="media" />
                 ) : (
                   <img
                     src={media.url}
                     alt={`${project.title} preview`}
-                    style={{
-                      width: "100%",
-                      borderRadius: 8,
-                      objectFit: "cover",
-                      maxHeight: 180,
-                    }}
+                    className="media"
                   />
                 )
               ) : (
                 <p>No media available</p>
               )}
 
+              {/* Summary - full & center aligned */}
               <p
-                style={{ marginTop: 10, fontSize: "0.9rem" }}
+                className="summary"
                 dangerouslySetInnerHTML={{
                   __html: formatDescription(
-                    project.description?.slice(0, 150) + "..."
+                    project.summary || project.description || ""
                   ),
                 }}
               />
+
+              {/* Technologies buttons */}
+              <div className="tech-container">
+                {techArray.length > 0 ? (
+                  techArray.map((tech, idx) => (
+                    <span key={idx} className="tech-tag">
+                      {techIcons[tech] || "🔧"} {tech}
+                    </span>
+                  ))
+                ) : (
+                  <div className="no-tech">No technologies listed.</div>
+                )}
+              </div>
             </div>
           );
         })}
@@ -267,22 +271,45 @@ const Projects = () => {
               }}
             />
 
-            <button
-              onClick={() => setSelectedProject(null)}
-              style={{
-                marginTop: 20,
-                padding: "0.6rem 1.2rem",
-                borderRadius: 6,
-                border: "none",
-                cursor: "pointer",
-                backgroundColor: "#dc3545",
-                color: "#fff",
-                display: "block",
-                marginLeft: "auto",
-              }}
-            >
-              Close
-            </button>
+            {(Array.isArray(selectedProject.technologies) ||
+              typeof selectedProject.technologies === "string") && (
+              <div
+                style={{
+                  marginTop: 15,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  justifyContent: "center",
+                }}
+              >
+                {(Array.isArray(selectedProject.technologies)
+                  ? selectedProject.technologies
+                  : selectedProject.technologies
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter(Boolean)
+                ).map((tech, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      backgroundColor: "#007bff",
+                      borderRadius: 12,
+                      padding: "6px 12px",
+                      fontSize: "0.85rem",
+                      fontWeight: "600",
+                      color: "#fff",
+                      userSelect: "none",
+                    }}
+                  >
+                    {techIcons[tech] || "🔧"} {tech}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <button onClick={() => setSelectedProject(null)}>Close</button>
           </div>
         </div>
       )}
@@ -334,6 +361,125 @@ const Projects = () => {
         @media (max-width: 768px) {
           .fancy-heading {
             font-size: 2.2rem;
+          }
+        }
+
+        /* Project Card styles */
+        .project-card {
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          padding: 16px;
+          background-color: #ffffffcc;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          cursor: pointer;
+          transition:
+            transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+            color 0.4s ease,
+            box-shadow 0.3s ease;
+          color: #000; /* default text color */
+          will-change: transform, color, box-shadow;
+        }
+
+        .project-card:hover {
+          transform: scale(1.05);
+          color: #007bff; /* highlight color */
+          box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+          animation: fadeInScale 0.3s ease forwards;
+        }
+
+        .project-card:hover .tech-tag {
+          background-color: #0056b3; /* darker blue on hover */
+          color: #fff;
+          animation: fadeInBg 0.4s ease forwards;
+        }
+
+        .project-card:hover .summary {
+          color: #007bff;
+          transition: color 0.4s ease;
+        }
+
+        .project-card:hover h3 {
+          color: #007bff;
+          transition: color 0.4s ease;
+        }
+
+        /* Media styling */
+        .media {
+          width: 100%;
+          border-radius: 8px;
+          max-height: 180px;
+          object-fit: cover;
+          margin-bottom: 8px;
+          transition: transform 0.3s ease;
+        }
+
+        /* Tech tags */
+        .tech-tag {
+          background-color: #007bff;
+          color: #fff;
+          border-radius: 12px;
+          padding: 4px 10px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          user-select: none;
+          margin-right: 6px;
+          transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .no-tech {
+          margin-top: 10px;
+          font-style: italic;
+          color: #666;
+        }
+
+        /* Close button hover */
+        button {
+          margin-top: 20px;
+          padding: 0.6rem 1.2rem;
+          border-radius: 6px;
+          border: none;
+          cursor: pointer;
+          background-color: #dc3545;
+          color: #fff;
+          display: block;
+          margin-left: auto;
+          transition: background-color 0.4s ease, transform 0.3s ease;
+          will-change: background-color, transform;
+        }
+
+        button:hover {
+          background-color: #a71d2a; /* darker red */
+          transform: scale(1.05);
+          animation: buttonPulse 0.5s ease infinite alternate;
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+          0% {
+            opacity: 0.6;
+            transform: scale(1);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1.05);
+          }
+        }
+
+        @keyframes fadeInBg {
+          0% {
+            background-color: #007bff;
+          }
+          100% {
+            background-color: #0056b3;
+          }
+        }
+
+        @keyframes buttonPulse {
+          0% {
+            box-shadow: 0 0 8px #a71d2a;
+          }
+          100% {
+            box-shadow: 0 0 20px #dc3545;
           }
         }
       `}</style>
