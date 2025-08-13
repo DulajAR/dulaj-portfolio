@@ -11,11 +11,13 @@ const AdminDashboard = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [time, setTime] = useState("");
 
+  // Added Education page here
   const navItems = [
     { label: "About", path: "/admin/about" },
     { label: "Projects", path: "/admin/projects" },
     { label: "Skills", path: "/admin/skills" },
     { label: "Certificates", path: "/admin/certificates" },
+    { label: "Education", path: "/admin/education" }, // ✅ New Education page
     { label: "Contact", path: "/admin/contact" },
   ];
 
@@ -51,7 +53,6 @@ const AdminDashboard = () => {
       const hours = now.getHours().toString().padStart(2, "0");
       const minutes = now.getMinutes().toString().padStart(2, "0");
       const seconds = now.getSeconds();
-      // Blinking colon every second
       const colon = seconds % 2 === 0 ? ":" : " ";
       setTime(`${hours}${colon}${minutes}`);
     };
@@ -87,8 +88,12 @@ const AdminDashboard = () => {
           >
             <h3>{item.label}</h3>
 
+            {/* Only Contact shows unread messages */}
             {item.label === "Contact" && unreadCount > 0 && (
-              <span className="notification-badge" aria-label={`${unreadCount} unread messages`}>
+              <span
+                className="notification-badge"
+                aria-label={`${unreadCount} unread messages`}
+              >
                 {/* Message Icon SVG */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -140,7 +145,7 @@ const AdminDashboard = () => {
           font-family: 'Courier New', Courier, monospace;
           font-size: 1.5rem;
           font-weight: 700;
-          color: #39ff14; /* neon green */
+          color: #39ff14;
           background: #000;
           padding: 0.4rem 1rem;
           border-radius: 6px;

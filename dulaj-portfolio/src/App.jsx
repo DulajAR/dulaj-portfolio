@@ -17,6 +17,7 @@ import AdminSkillsPage from "./admin/pages/AdminSkillsPage";
 import AdminContactPage from "./admin/pages/AdminContactPage";
 import AdminProjectsPage from "./admin/pages/AdminProjectsPage";
 import AdminCertificatesPage from "./admin/pages/AdminCertificatesPage"; // ✅ Admin Certificates
+import AdminEducationPage from "./admin/pages/AdminEducationPage"; // ✅ Admin Education
 
 // 🔒 Private Route Handler
 const PrivateRoute = ({ isAuthenticated, children }) => {
@@ -91,6 +92,14 @@ const App = () => {
         element={
           <PrivateRoute isAuthenticated={isAuthenticated}>
             <AdminCertificatesPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/admin/education"
+        element={
+          <PrivateRoute isAuthenticated={isAuthenticated}>
+            <AdminEducationPage />
           </PrivateRoute>
         }
       />
