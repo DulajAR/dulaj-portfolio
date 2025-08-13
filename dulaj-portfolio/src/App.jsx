@@ -8,6 +8,7 @@ import ProjectsPage from "./pages/ProjectsPage";
 import SkillsPage from "./pages/SkillsPage";
 import ContactPage from "./pages/ContactPage";
 import CertificatesPage from "./pages/CertificatesPage"; // ✅ Public Certificates page
+import EducationPage from "./pages/EducationPage"; // ✅ Public Education page
 
 // 🔐 Admin Pages
 import AdminLoginPage from "./admin/pages/AdminLoginPage";
@@ -41,6 +42,7 @@ const App = () => {
       <Route path="/skills" element={<SkillsPage />} />
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/certificates" element={<CertificatesPage />} /> {/* ✅ Added public route */}
+      <Route path="/education" element={<EducationPage />} /> {/* ✅ Added public route */}
 
       {/* 🔐 Admin Pages */}
       <Route

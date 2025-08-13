@@ -33,9 +33,11 @@ const Header = () => {
     fetchCV();
   }, []);
 
+  // Nav links with Education added
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/about", label: "About" },
+    { path: "/education", label: "Education" }, // ✅ Added Education link
     { path: "/projects", label: "Projects" },
     { path: "/skills", label: "Skills" },
     { path: "/certificates", label: "Certificates" },
@@ -165,6 +167,12 @@ const Header = () => {
           height: 3px;
           background-color: #007bff;
           border-radius: 2px;
+          animation: slideIn 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+          from { width: 0; }
+          to { width: 100%; }
         }
 
         .cv-button {
