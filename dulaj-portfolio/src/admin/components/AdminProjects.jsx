@@ -17,6 +17,7 @@ import { db, storage } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import DOMPurify from "dompurify";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const AdminProjects = () => {
   const [projects, setProjects] = useState([]);
@@ -39,9 +40,27 @@ const AdminProjects = () => {
     try {
       const snapshot = await getDocs(projectsRef);
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setProjects(data);
+      setProjects(data.sort((a, b) => (a.order || 0) - (b.order || 0)));
     } catch (error) {
       alert("Failed to fetch projects: " + error.message);
+    }
+  };
+
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    const reordered = Array.from(projects);
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    setProjects(reordered);
+
+    try {
+      await Promise.all(
+        reordered.map((proj, index) =>
+          updateDoc(doc(db, "projects", proj.id), { order: index })
+        )
+      );
+    } catch (err) {
+      console.error("Failed to save new order:", err);
     }
   };
 
@@ -139,6 +158,7 @@ const AdminProjects = () => {
           description: DOMPurify.sanitize(description),
           media: finalMedia,
           timestamp: new Date(),
+          order: projects.length,
         });
         alert("Project added successfully!");
       }
@@ -212,64 +232,67 @@ const AdminProjects = () => {
           boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
         }}
       >
-        <h2 style={{ textAlign: "center", color: "#333", marginBottom: "1rem" }}>
+        {/* --- COLORFUL TITLE --- */}
+        <h2
+          style={{
+            textAlign: "center",
+            marginBottom: "1rem",
+            background: "linear-gradient(90deg, #ff7e5f, #feb47b, #86a8e7, #91eae4)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            fontSize: "2rem",
+            fontWeight: "bold",
+          }}
+        >
           Manage Projects
         </h2>
+
+        {/* --- COLORFUL BACK BUTTON --- */}
         <button
           onClick={() => navigate("/admin/dashboard")}
           style={{
             marginBottom: "1rem",
-            padding: "0.5rem 1rem",
-            backgroundColor: "#667eea",
+            padding: "0.6rem 1.2rem",
+            background: "linear-gradient(45deg, #ff6a00, #ee0979, #00f260, #0575e6)",
             color: "#fff",
             border: "none",
-            borderRadius: "6px",
+            borderRadius: "8px",
             cursor: "pointer",
+            fontWeight: "bold",
+            fontSize: "16px",
+            transition: "all 0.3s ease",
           }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.filter = "brightness(1.2)")
+          }
+          onMouseLeave={(e) => (e.currentTarget.style.filter = "brightness(1)")}
         >
           ⬅ Back to Dashboard
         </button>
 
+        {/* --- FORM AND MEDIA SECTION --- */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <input
             type="text"
             placeholder="Project Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{
-              padding: 10,
-              fontSize: 16,
-              borderRadius: 8,
-              border: "1px solid #ccc",
-            }}
+            style={{ padding: 10, fontSize: 16, borderRadius: 8, border: "1px solid #ccc" }}
           />
-
           <input
             type="text"
             placeholder="Short Description Summary"
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
-            style={{
-              padding: 10,
-              fontSize: 16,
-              borderRadius: 8,
-              border: "1px solid #ccc",
-            }}
+            style={{ padding: 10, fontSize: 16, borderRadius: 8, border: "1px solid #ccc" }}
           />
-
           <input
             type="text"
             placeholder="Technologies Used (comma-separated)"
             value={technologies}
             onChange={(e) => setTechnologies(e.target.value)}
-            style={{
-              padding: 10,
-              fontSize: 16,
-              borderRadius: 8,
-              border: "1px solid #ccc",
-            }}
+            style={{ padding: 10, fontSize: 16, borderRadius: 8, border: "1px solid #ccc" }}
           />
-
           <div
             contentEditable
             suppressContentEditableWarning
@@ -284,7 +307,6 @@ const AdminProjects = () => {
               overflowY: "auto",
             }}
           ></div>
-
           <input
             type="file"
             onChange={handleMediaChange}
@@ -292,25 +314,11 @@ const AdminProjects = () => {
             multiple
             style={{ borderRadius: 6 }}
           />
-
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "10px",
-              marginTop: "0.5rem",
-            }}
-          >
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "0.5rem" }}>
             {mediaPreviews.map((media, i) =>
               media.url.endsWith(".mp4") || media.url.includes("video") ? (
                 <div key={i} style={{ position: "relative" }}>
-                  <video
-                    controls
-                    width="150"
-                    height="100"
-                    style={{ borderRadius: 8 }}
-                    src={media.url}
-                  />
+                  <video controls width="150" height="100" style={{ borderRadius: 8 }} src={media.url} />
                   <button
                     onClick={() => handleRemoveMedia(i)}
                     style={{
@@ -363,7 +371,6 @@ const AdminProjects = () => {
               )
             )}
           </div>
-
           <button
             onClick={handleAddOrUpdate}
             style={{
@@ -381,76 +388,87 @@ const AdminProjects = () => {
           </button>
         </div>
 
+        {/* --- PROJECT LIST WITH DRAG/DROP --- */}
         <div style={{ marginTop: "2rem" }}>
-          {projects.map((project) => (
-            <div
-              key={project.id}
-              style={{
-                background: "#f9f9f9",
-                padding: "1rem",
-                borderRadius: "10px",
-                marginBottom: "1rem",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-              }}
-            >
-              <h3 style={{ marginBottom: "0.5rem", color: "#333" }}>{project.title}</h3>
-              <p><strong>Summary:</strong> {project.summary}</p>
-              <p><strong>Technologies:</strong> {project.technologies}</p>
-              <div dangerouslySetInnerHTML={{ __html: project.description }} />
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                {project.media &&
-                  project.media.map((mediaItem, i) =>
-                    mediaItem.type.startsWith("video") ? (
-                      <video
-                        key={i}
-                        controls
-                        width="150"
-                        height="100"
-                        style={{ borderRadius: 8 }}
-                      >
-                        <source src={mediaItem.url} />
-                      </video>
-                    ) : (
-                      <img
-                        key={i}
-                        src={mediaItem.url}
-                        alt={`${project.title} media ${i + 1}`}
-                        style={{ width: 150, height: 100, objectFit: "cover", borderRadius: 8 }}
-                      />
-                    )
-                  )}
-              </div>
-              <div style={{ marginTop: "1rem" }}>
-                <button
-                  onClick={() => handleEdit(project)}
-                  style={{
-                    marginRight: "0.5rem",
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    padding: "0.4rem 0.8rem",
-                    borderRadius: "6px",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(project.id, project.media)}
-                  style={{
-                    backgroundColor: "#dc3545",
-                    color: "#fff",
-                    padding: "0.4rem 0.8rem",
-                    borderRadius: "6px",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="projects">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps}>
+                  {projects.map((project, index) => (
+                    <Draggable key={project.id} draggableId={project.id} index={index}>
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          style={{
+                            background: "#f9f9f9",
+                            padding: "1rem",
+                            borderRadius: "10px",
+                            marginBottom: "1rem",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                            ...provided.draggableProps.style,
+                          }}
+                        >
+                          <h3 style={{ marginBottom: "0.5rem", color: "#333" }}>{project.title}</h3>
+                          <p><strong>Summary:</strong> {project.summary}</p>
+                          <p><strong>Technologies:</strong> {project.technologies}</p>
+                          <div dangerouslySetInnerHTML={{ __html: project.description }} />
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                            {project.media &&
+                              project.media.map((mediaItem, i) =>
+                                mediaItem.type.startsWith("video") ? (
+                                  <video key={i} controls width="150" height="100" style={{ borderRadius: 8 }}>
+                                    <source src={mediaItem.url} />
+                                  </video>
+                                ) : (
+                                  <img
+                                    key={i}
+                                    src={mediaItem.url}
+                                    alt={`${project.title} media ${i + 1}`}
+                                    style={{ width: 150, height: 100, objectFit: "cover", borderRadius: 8 }}
+                                  />
+                                )
+                              )}
+                          </div>
+                          <div style={{ marginTop: "1rem" }}>
+                            <button
+                              onClick={() => handleEdit(project)}
+                              style={{
+                                marginRight: "0.5rem",
+                                backgroundColor: "#007bff",
+                                color: "#fff",
+                                padding: "0.4rem 0.8rem",
+                                borderRadius: "6px",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(project.id, project.media)}
+                              style={{
+                                backgroundColor: "#dc3545",
+                                color: "#fff",
+                                padding: "0.4rem 0.8rem",
+                                borderRadius: "6px",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </div>
       </div>
     </section>

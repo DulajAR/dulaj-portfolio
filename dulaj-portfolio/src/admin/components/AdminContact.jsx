@@ -15,6 +15,7 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const AdminContact = () => {
   const [contacts, setContacts] = useState([]);
@@ -33,7 +34,8 @@ const AdminContact = () => {
 
   const fetchContacts = async () => {
     const snapshot = await getDocs(contactsRef);
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
     setContacts(data);
   };
 
@@ -56,7 +58,7 @@ const AdminContact = () => {
       await updateDoc(contactRef, { type: newType, link: newLink });
       alert("Contact updated successfully!");
     } else {
-      await addDoc(contactsRef, { type: newType, link: newLink });
+      await addDoc(contactsRef, { type: newType, link: newLink, order: contacts.length });
       alert("Contact added successfully!");
     }
 
@@ -150,6 +152,25 @@ const AdminContact = () => {
     alert("CV deleted successfully!");
   };
 
+  // Drag & drop for contacts
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    const reordered = Array.from(contacts);
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    setContacts(reordered);
+
+    try {
+      await Promise.all(
+        reordered.map((c, index) =>
+          updateDoc(doc(db, "contacts", c.id), { order: index })
+        )
+      );
+    } catch (err) {
+      console.error("Failed to save new order:", err);
+    }
+  };
+
   return (
     <section
       style={{
@@ -171,7 +192,18 @@ const AdminContact = () => {
           boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
         }}
       >
-        <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", color: "#333" }}>
+        {/* Contact Links */}
+        <h2
+          style={{
+            fontSize: "2.2rem",
+            textAlign: "center",
+            marginBottom: "1.5rem",
+            fontWeight: "bold",
+            background: "linear-gradient(90deg, #ff8a00, #e52e71)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
           📇 Manage Contact Links
         </h2>
 
@@ -190,38 +222,21 @@ const AdminContact = () => {
           ⬅ Back to Dashboard
         </button>
 
-        {/* Contact Links Form */}
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            marginBottom: "1.5rem",
-            flexWrap: "wrap",
-          }}
-        >
+        {/* Add Contact Form */}
+        <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
           <input
             type="text"
             placeholder="Type (e.g., LinkedIn, GitHub)"
             value={newType}
             onChange={(e) => setNewType(e.target.value)}
-            style={{
-              padding: "0.5rem",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              flex: "1 1 200px",
-            }}
+            style={{ padding: "0.5rem", borderRadius: "8px", border: "1px solid #ccc", flex: "1 1 200px" }}
           />
           <input
             type="text"
             placeholder="Link"
             value={newLink}
             onChange={(e) => setNewLink(e.target.value)}
-            style={{
-              padding: "0.5rem",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              flex: "2 1 300px",
-            }}
+            style={{ padding: "0.5rem", borderRadius: "8px", border: "1px solid #ccc", flex: "2 1 300px" }}
           />
           <button
             onClick={handleAddOrUpdateContact}
@@ -255,82 +270,99 @@ const AdminContact = () => {
           )}
         </div>
 
-        {/* Contact List */}
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {contacts.map((contact) => (
-            <li
-              key={contact.id}
-              style={{
-                padding: "1rem",
-                border: "1px solid #eee",
-                borderRadius: "10px",
-                marginBottom: "1rem",
-                backgroundColor: "#fafafa",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
-              <div>
-                <strong>{contact.type}:</strong>{" "}
-                <a
-                  href={contact.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: "#007BFF" }}
-                >
-                  {contact.link}
-                </a>
-              </div>
-              <div style={{ marginTop: "0.5rem" }}>
-                <button
-                  onClick={() => handleEditContact(contact)}
-                  style={{
-                    backgroundColor: "#5bc0de",
-                    color: "white",
-                    border: "none",
-                    padding: "0.4rem 0.8rem",
-                    borderRadius: "6px",
-                    marginRight: "0.5rem",
-                    cursor: "pointer",
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteContact(contact.id)}
-                  style={{
-                    backgroundColor: "#d9534f",
-                    color: "white",
-                    border: "none",
-                    padding: "0.4rem 0.8rem",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {/* Contact List with Drag & Drop */}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="contacts">
+            {(provided) => (
+              <ul
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                style={{ listStyle: "none", padding: 0 }}
+              >
+                {contacts.map((contact, index) => (
+                  <Draggable key={contact.id} draggableId={contact.id} index={index}>
+                    {(provided, snapshot) => (
+                      <li
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        style={{
+                          padding: "1rem",
+                          border: "1px solid #eee",
+                          borderRadius: "10px",
+                          marginBottom: "1rem",
+                          backgroundColor: snapshot.isDragging ? "#e0f7fa" : "#fafafa",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          ...provided.draggableProps.style,
+                        }}
+                      >
+                        <div>
+                          <strong>{contact.type}:</strong>{" "}
+                          <a href={contact.link} target="_blank" rel="noreferrer" style={{ color: "#007BFF" }}>
+                            {contact.link}
+                          </a>
+                        </div>
+                        <div style={{ marginTop: "0.5rem" }}>
+                          <button
+                            onClick={() => handleEditContact(contact)}
+                            style={{
+                              backgroundColor: "#5bc0de",
+                              color: "white",
+                              border: "none",
+                              padding: "0.4rem 0.8rem",
+                              borderRadius: "6px",
+                              marginRight: "0.5rem",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteContact(contact.id)}
+                            style={{
+                              backgroundColor: "#d9534f",
+                              color: "white",
+                              border: "none",
+                              padding: "0.4rem 0.8rem",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </li>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </ul>
+            )}
+          </Droppable>
+        </DragDropContext>
 
         <hr style={{ margin: "3rem 0" }} />
 
         {/* CV Section */}
-        <h2 style={{ fontSize: "2rem", marginBottom: "1.5rem", color: "#333" }}>
+        <h2
+          style={{
+            fontSize: "2.2rem",
+            textAlign: "center",
+            marginBottom: "1.5rem",
+            fontWeight: "bold",
+            background: "linear-gradient(90deg, #ff512f, #dd2476)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
           📄 Manage CV Upload
         </h2>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            marginBottom: "1.5rem",
-            flexWrap: "wrap",
-          }}
-        >
+        {/* CV Upload & List (same as before) */}
+        <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
           <input
             type="file"
             accept=".pdf,.doc,.docx"
@@ -384,7 +416,6 @@ const AdminContact = () => {
           )}
         </div>
 
-        {/* CV List */}
         <ul style={{ listStyle: "none", padding: 0 }}>
           {cvs.map((cv) => (
             <li
@@ -401,12 +432,7 @@ const AdminContact = () => {
                 flexWrap: "wrap",
               }}
             >
-              <a
-                href={cv.cvUrl}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: "#28a745" }}
-              >
+              <a href={cv.cvUrl} target="_blank" rel="noreferrer" style={{ color: "#28a745" }}>
                 📄 View CV
               </a>
               <div style={{ marginTop: "0.5rem" }}>

@@ -8,18 +8,23 @@ const AdminSkillsPage = () => {
 
   return (
     <div style={{ padding: "2rem" }}>
-      {/* Back Button */}
+      {/* Back Button with Gradient and Hover Effect */}
       <button
         onClick={() => navigate("/admin/dashboard")}
         style={{
           marginBottom: "1.5rem",
-          padding: "0.5rem 1rem",
-          backgroundColor: "#6c757d",
+          padding: "0.6rem 1.2rem",
+          background: "linear-gradient(45deg, #ff6a00, #ee0979, #00f260, #0575e6)",
           color: "#fff",
           border: "none",
           borderRadius: "8px",
           cursor: "pointer",
+          fontWeight: "bold",
+          fontSize: "16px",
+          transition: "all 0.3s ease",
         }}
+        onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.2)")}
+        onMouseLeave={(e) => (e.currentTarget.style.filter = "brightness(1)")}
       >
         ⬅ Back to Dashboard
       </button>

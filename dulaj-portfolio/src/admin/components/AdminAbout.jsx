@@ -1,8 +1,8 @@
-// src/admin/components/AdminAbout.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { motion } from "framer-motion";
 
 const AdminAbout = () => {
   const navigate = useNavigate();
@@ -94,34 +94,48 @@ const AdminAbout = () => {
           boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
         }}
       >
-        {/* Dashboard Button */}
-        <button
+        {/* Colorful Dashboard Button with hover effect */}
+        <motion.button
           onClick={() => navigate("/admin/dashboard")}
+          whileHover={{ scale: 1.05, rotate: 2 }}
+          whileTap={{ scale: 0.95, rotate: -2 }}
           style={{
             marginBottom: "1.5rem",
-            padding: "10px 20px",
-            backgroundColor: "#2563eb",
+            padding: "12px 25px",
+            background: "linear-gradient(90deg, #ff6b6b, #fcb045, #48bb78, #4f46e5)",
+            backgroundSize: "400% 400%",
             color: "#fff",
             border: "none",
-            borderRadius: "8px",
+            borderRadius: "12px",
             cursor: "pointer",
-            fontSize: "1rem",
-            alignSelf: "flex-start",
+            fontSize: "1.1rem",
+            fontWeight: "bold",
+            textShadow: "1px 1px 4px rgba(0,0,0,0.3)",
+            animation: "gradientBG 8s ease infinite",
           }}
         >
-          Dashboard
-        </button>
+          Back to Dashboard
+        </motion.button>
 
-        <h2
+        {/* Colorful Edit About Section title */}
+        <motion.h2
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
           style={{
-            fontSize: "1.8rem",
-            marginBottom: "1.5rem",
-            color: "#333",
+            fontSize: "2rem",
+            marginBottom: "2rem",
             textAlign: "center",
+            fontWeight: "bold",
+            background: "linear-gradient(90deg, #ff6b6b, #fcb045, #48bb78, #4f46e5)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            textShadow: "0 0 10px rgba(0,0,0,0.1)",
           }}
         >
           Edit About Section
-        </h2>
+        </motion.h2>
+
         <form
           onSubmit={handleSubmit}
           style={{ display: "flex", flexDirection: "column" }}
@@ -235,6 +249,15 @@ const AdminAbout = () => {
           </button>
         </form>
       </div>
+
+      {/* Gradient animation */}
+      <style>{`
+        @keyframes gradientBG {
+          0% {background-position:0% 50%}
+          50% {background-position:100% 50%}
+          100% {background-position:0% 50%}
+        }
+      `}</style>
     </section>
   );
 };

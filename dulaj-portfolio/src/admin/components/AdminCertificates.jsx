@@ -16,6 +16,7 @@ import {
 } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const AdminCertificates = () => {
   const [certificates, setCertificates] = useState([]);
@@ -98,7 +99,6 @@ const AdminCertificates = () => {
   const handleDelete = async (cert) => {
     if (window.confirm("Are you sure you want to delete this certificate?")) {
       await deleteDoc(doc(db, "certificates", cert.id));
-      // Attempt to delete file from storage
       try {
         const fileName = cert.fileUrl.split("%2F")[1].split("?")[0];
         const storageRef = ref(storage, `certificates/${fileName}`);
@@ -108,7 +108,14 @@ const AdminCertificates = () => {
     }
   };
 
-  // Animation variants
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    const items = Array.from(certificates);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setCertificates(items);
+  };
+
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.1 } }
@@ -122,27 +129,29 @@ const AdminCertificates = () => {
   };
 
   const buttonVariants = {
-    hover: { scale: 1.05, backgroundColor: "#3b82f6" },
+    hover: { scale: 1.05 },
     tap: { scale: 0.95 }
   };
 
   return (
     <div style={styles.pageContainer}>
       <div style={styles.contentWrapper}>
+        {/* Centered Back Button */}
         <motion.button
           onClick={() => navigate("/admin/dashboard")}
           style={styles.backBtn}
-          whileHover={{ scale: 1.05, backgroundColor: "#cbd5e1" }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.1, rotate: 5, backgroundColor: "#ff6b6b", color: "#fff" }}
+          whileTap={{ scale: 0.95, rotate: -5 }}
         >
           ← Back to Dashboard
         </motion.button>
 
+        {/* Centered Add New Certificate Title */}
         <motion.h2
           style={styles.title}
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.6 }}
         >
           {editingId ? "Edit Certificate" : "Add New Certificate"}
         </motion.h2>
@@ -196,8 +205,9 @@ const AdminCertificates = () => {
           </div>
         </motion.div>
 
+        {/* Uploaded Certificates Heading */}
         <motion.h3
-          style={{ marginTop: "3rem", marginBottom: "1rem", color: "white", textShadow: "0 0 5px rgba(0,0,0,0.7)" }}
+          style={styles.uploadedHeading}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
@@ -205,56 +215,68 @@ const AdminCertificates = () => {
           📜 Uploaded Certificates
         </motion.h3>
 
-        <motion.div
-          style={styles.grid}
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {certificates.map(cert => (
-            <motion.div
-              key={cert.id}
-              style={styles.card}
-              variants={cardVariants}
-              whileHover="hover"
-              whileTap="tap"
-              onClick={() => setPreviewCert(cert)}
-            >
-              <h3 style={{ color: "#4f46e5", textShadow: "0 0 6px #a5b4fc" }}>{cert.title}</h3>
-              <p>{cert.description}</p>
-              {cert.fileType === "image" ? (
-                <img src={cert.fileUrl} alt="certificate" style={styles.image} />
-              ) : (
-                <iframe
-                  src={cert.fileUrl}
-                  title="PDF Preview"
-                  style={styles.pdfPreview}
-                  frameBorder="0"
-                />
-              )}
-              <div style={{ marginTop: "0.5rem", display: "flex", gap: "10px", justifyContent: "center" }}>
-                <motion.button
-                  onClick={(e) => { e.stopPropagation(); handleEdit(cert); }}
-                  style={styles.editButton}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  Edit
-                </motion.button>
-                <motion.button
-                  onClick={(e) => { e.stopPropagation(); handleDelete(cert); }}
-                  style={styles.deleteButton}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  Delete
-                </motion.button>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+        {/* Drag & Drop Certificates */}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="certificates" direction="horizontal">
+            {(provided) => (
+              <motion.div
+                style={styles.grid}
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {certificates.map((cert, index) => (
+                  <Draggable key={cert.id} draggableId={cert.id} index={index}>
+                    {(providedDrag) => (
+                      <motion.div
+                        key={cert.id}
+                        style={styles.card}
+                        variants={cardVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                        onClick={() => setPreviewCert(cert)}
+                        ref={providedDrag.innerRef}
+                        {...providedDrag.draggableProps}
+                        {...providedDrag.dragHandleProps}
+                      >
+                        <h3 style={{ color: "#4f46e5", textShadow: "0 0 6px #a5b4fc" }}>{cert.title}</h3>
+                        <p>{cert.description}</p>
+                        {cert.fileType === "image" ? (
+                          <img src={cert.fileUrl} alt="certificate" style={styles.image} />
+                        ) : (
+                          <iframe src={cert.fileUrl} title="PDF Preview" style={styles.pdfPreview} frameBorder="0" />
+                        )}
+                        <div style={{ marginTop: "0.5rem", display: "flex", gap: "10px", justifyContent: "center" }}>
+                          <motion.button
+                            onClick={(e) => { e.stopPropagation(); handleEdit(cert); }}
+                            style={styles.editButton}
+                            variants={buttonVariants}
+                            whileHover="hover"
+                            whileTap="tap"
+                          >
+                            Edit
+                          </motion.button>
+                          <motion.button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(cert); }}
+                            style={styles.deleteButton}
+                            variants={buttonVariants}
+                            whileHover="hover"
+                            whileTap="tap"
+                          >
+                            Delete
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </motion.div>
+            )}
+          </Droppable>
+        </DragDropContext>
 
         <AnimatePresence>
           {previewCert && (
@@ -305,37 +327,44 @@ const styles = {
   pageContainer: {
     minHeight: "100vh",
     width: "100vw",
-    background: "linear-gradient(135deg, #667eea, #764ba2)", // Beautiful gradient background
+    background: "linear-gradient(135deg, #667eea, #764ba2)",
     display: "flex",
     justifyContent: "center",
     alignItems: "flex-start",
     padding: "2rem 1rem",
-    boxSizing: "border-box",
     fontFamily: "Arial, sans-serif"
   },
   contentWrapper: {
     maxWidth: "900px",
     width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.85)", // Slightly transparent white
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: "12px",
     boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
     padding: "2rem",
     marginBottom: "2rem",
-    color: "#1a202c" // Dark text for readability
+    color: "#1a202c"
   },
   backBtn: {
-    backgroundColor: "#e2e8f0",
-    padding: "8px 14px",
-    borderRadius: "6px",
+    display: "block",
+    margin: "0 auto 1rem",
+    padding: "10px 20px",
+    borderRadius: "12px",
     border: "none",
-    marginBottom: "1rem",
     cursor: "pointer",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    fontSize: "1.1rem",
+    backgroundColor: "#ffcc00",
+    color: "#1a202c",
+    textShadow: "1px 1px 2px rgba(0,0,0,0.3)"
   },
   title: {
-    fontSize: "1.8rem",
-    marginBottom: "1rem",
-    color: "#333"
+    fontSize: "2rem",
+    textAlign: "center",
+    marginBottom: "2rem",
+    background: "linear-gradient(90deg, #ff6b6b, #fcb045, #6a11cb, #2575fc)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    fontWeight: "bold"
   },
   form: {
     marginBottom: "2rem",
@@ -373,6 +402,16 @@ const styles = {
     borderRadius: "8px",
     cursor: "pointer",
     fontSize: "1rem"
+  },
+  uploadedHeading: {
+    marginTop: "3rem",
+    marginBottom: "1rem",
+    textAlign: "center",
+    fontSize: "1.8rem",
+    fontWeight: "bold",
+    background: "linear-gradient(90deg, #ff6b6b, #fcb045, #6a11cb, #2575fc)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent"
   },
   grid: {
     display: "grid",
