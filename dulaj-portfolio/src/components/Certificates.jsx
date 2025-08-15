@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 const Certificates = () => {
   const [certificates, setCertificates] = useState([]);
@@ -10,13 +10,15 @@ const Certificates = () => {
   useEffect(() => {
     const fetchCertificates = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "certificates"));
+        // Fetch certificates sorted by "order" field
+        const q = query(collection(db, "certificates"), orderBy("order", "asc"));
+        const querySnapshot = await getDocs(q);
         const data = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         setCertificates(data);
-        setLoading(false); // stop loading
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching certificates:", error);
         setLoading(false);
@@ -33,7 +35,7 @@ const Certificates = () => {
       {loading ? (
         <div style={styles.loaderContainer}>
           <img
-            src="https://i.gifer.com/ZKZg.gif" // Developer-style typing animation
+            src="https://i.gifer.com/ZKZg.gif"
             alt="Loading..."
             style={styles.loaderImage}
           />

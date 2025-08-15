@@ -40,10 +40,9 @@ const Contact = () => {
     const fetchContacts = async () => {
       try {
         const snapshot = await getDocs(collection(db, "contacts"));
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const data = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)); // ✅ Sort by order
         setContacts(data);
       } catch (err) {
         console.error("Failed to fetch contacts:", err);
@@ -70,13 +69,9 @@ const Contact = () => {
         timestamp: serverTimestamp(),
       });
 
-      // ✅ Show success alert
       setSuccess("✅ Your message has been sent successfully!");
-
-      // Reset form
       setFormData({ name: "", email: "", message: "" });
 
-      // Hide after 3 seconds
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       console.error("Error sending message:", err);
@@ -208,12 +203,8 @@ const Contact = () => {
                   height: "60px",
                   textDecoration: "none",
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.transform = "scale(1.15)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.transform = "scale(1)")
-                }
+                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.15)")}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
               >
                 {icon}
               </a>

@@ -6,7 +6,9 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  updateDoc
+  updateDoc,
+  query,
+  orderBy
 } from "firebase/firestore";
 import {
   ref,
@@ -31,7 +33,8 @@ const AdminCertificates = () => {
   const navigate = useNavigate();
 
   const fetchCertificates = async () => {
-    const querySnapshot = await getDocs(collection(db, "certificates"));
+    const q = query(collection(db, "certificates"), orderBy("order", "asc"));
+    const querySnapshot = await getDocs(q);
     const data = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -70,7 +73,8 @@ const AdminCertificates = () => {
         title,
         description,
         fileUrl,
-        fileType
+        fileType,
+        order: certificates.length // new order field
       });
       alert("Certificate uploaded!");
     }
@@ -108,12 +112,23 @@ const AdminCertificates = () => {
     }
   };
 
-  const handleDragEnd = (result) => {
+  const handleDragEnd = async (result) => {
     if (!result.destination) return;
+
     const items = Array.from(certificates);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update local state
     setCertificates(items);
+
+    // Update Firestore order
+    const updates = items.map((item, index) => {
+      const docRef = doc(db, "certificates", item.id);
+      return updateDoc(docRef, { order: index });
+    });
+
+    await Promise.all(updates);
   };
 
   const containerVariants = {
@@ -136,7 +151,6 @@ const AdminCertificates = () => {
   return (
     <div style={styles.pageContainer}>
       <div style={styles.contentWrapper}>
-        {/* Centered Back Button */}
         <motion.button
           onClick={() => navigate("/admin/dashboard")}
           style={styles.backBtn}
@@ -146,7 +160,6 @@ const AdminCertificates = () => {
           ← Back to Dashboard
         </motion.button>
 
-        {/* Centered Add New Certificate Title */}
         <motion.h2
           style={styles.title}
           initial={{ opacity: 0, y: -30 }}
@@ -205,7 +218,6 @@ const AdminCertificates = () => {
           </div>
         </motion.div>
 
-        {/* Uploaded Certificates Heading */}
         <motion.h3
           style={styles.uploadedHeading}
           initial={{ opacity: 0 }}
@@ -215,7 +227,6 @@ const AdminCertificates = () => {
           📜 Uploaded Certificates
         </motion.h3>
 
-        {/* Drag & Drop Certificates */}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="certificates" direction="horizontal">
             {(provided) => (
