@@ -231,4 +231,10 @@ const styles = {
   },
 };
 
+
+
+
+
+
+
 export default Education;
