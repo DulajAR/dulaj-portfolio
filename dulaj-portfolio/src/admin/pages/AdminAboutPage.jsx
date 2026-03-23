@@ -20,4 +20,12 @@ const AdminAboutPage = () => {
 
 
 
+
+
+
+
+
+
+
+
 export default AdminAboutPage;
