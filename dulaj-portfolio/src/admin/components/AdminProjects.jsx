@@ -7,17 +7,11 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
-import { db, storage } from "../../firebase";
+import { db } from "../../firebase";
 import { useNavigate } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
 import DOMPurify from "dompurify";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 
 const AdminProjects = () => {
   const [projects, setProjects] = useState([]);
@@ -81,7 +75,6 @@ const AdminProjects = () => {
   const handleRemoveMedia = (index) => {
     setMediaPreviews((prev) => prev.filter((_, i) => i !== index));
     setMediaFiles((prev) => {
-      const newFilesOnly = mediaPreviews.filter((p) => p.isNew);
       const removedMedia = mediaPreviews[index];
       return prev.filter((f) => f.name !== removedMedia?.name);
     });
@@ -90,10 +83,14 @@ const AdminProjects = () => {
   const uploadMediaFiles = async (files) => {
     try {
       const uploadPromises = files.map(async (file) => {
-        const fileRef = ref(storage, `projects/${uuidv4()}-${file.name}`);
-        await uploadBytes(fileRef, file);
-        const url = await getDownloadURL(fileRef);
-        return { url, type: file.type, name: file.name };
+        const uploadedFile = await uploadToCloudinary(file, { folder: "portfolio_upload/projects" });
+        return {
+          url: uploadedFile.url,
+          publicId: uploadedFile.publicId,
+          resourceType: uploadedFile.resourceType,
+          type: file.type,
+          name: file.name,
+        };
       });
       return await Promise.all(uploadPromises);
     } catch (error) {
@@ -127,19 +124,6 @@ const AdminProjects = () => {
             }
           })
           .filter((m) => m !== undefined);
-
-        const removedMedia = originalProject.media.filter(
-          (m) => !finalMedia.some((fm) => fm.url === m.url)
-        );
-
-        await Promise.all(
-          removedMedia.map(async (m) => {
-            try {
-              const mediaRef = ref(storage, m.url);
-              await deleteObject(mediaRef);
-            } catch {}
-          })
-        );
 
         await updateDoc(doc(db, "projects", editingId), {
           title,
@@ -199,19 +183,9 @@ const AdminProjects = () => {
   };
 
   // --- Delete project ---
-  const handleDelete = async (id, mediaArray) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this project?")) return;
     try {
-      if (mediaArray && mediaArray.length > 0) {
-        await Promise.all(
-          mediaArray.map(async (mediaItem) => {
-            try {
-              const mediaRef = ref(storage, mediaItem.url);
-              await deleteObject(mediaRef);
-            } catch {}
-          })
-        );
-      }
       await deleteDoc(doc(db, "projects", id));
       alert("Project deleted successfully.");
       fetchProjects();

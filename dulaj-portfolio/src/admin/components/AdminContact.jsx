@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, storage } from "../../firebase";
+import { db } from "../../firebase";
 import {
   collection,
   addDoc,
@@ -9,13 +9,8 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 
 const AdminContact = () => {
   const [contacts, setContacts] = useState([]);
@@ -84,9 +79,20 @@ const AdminContact = () => {
   };
 
   const uploadCVFile = async (file) => {
-    const storageRef = ref(storage, `cvs/${Date.now()}_${file.name}`);
-    await uploadBytes(storageRef, file);
-    return getDownloadURL(storageRef);
+    return uploadToCloudinary(file, {
+      folder: "portfolio_upload/cvs",
+      resourceType: "image",
+    });
+  };
+
+  const getCVViewUrl = (cv) => {
+    if (!cv?.cvUrl) return "#";
+
+    if (cv.cvResourceType === "raw") {
+      return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(cv.cvUrl)}`;
+    }
+
+    return cv.cvUrl;
   };
 
   const handleAddCV = async () => {
@@ -100,8 +106,12 @@ const AdminContact = () => {
       return;
     }
 
-    const url = await uploadCVFile(newCV);
-    await addDoc(cvsRef, { cvUrl: url });
+    const uploadedCV = await uploadCVFile(newCV);
+    await addDoc(cvsRef, {
+      cvUrl: uploadedCV.url,
+      cvPublicId: uploadedCV.publicId,
+      cvResourceType: uploadedCV.resourceType,
+    });
     setNewCV(null);
     fetchCVs();
     alert("CV uploaded successfully!");
@@ -114,19 +124,13 @@ const AdminContact = () => {
     }
 
     const docRef = doc(db, "cvs", id);
-    const oldCV = cvs.find((c) => c.id === id);
 
-    if (oldCV?.cvUrl) {
-      try {
-        const oldRef = ref(storage, oldCV.cvUrl);
-        await deleteObject(oldRef);
-      } catch (error) {
-        console.warn("Old file deletion failed (may not exist).");
-      }
-    }
-
-    const newUrl = await uploadCVFile(newCV);
-    await updateDoc(docRef, { cvUrl: newUrl });
+    const uploadedCV = await uploadCVFile(newCV);
+    await updateDoc(docRef, {
+      cvUrl: uploadedCV.url,
+      cvPublicId: uploadedCV.publicId,
+      cvResourceType: uploadedCV.resourceType,
+    });
     setEditingCVId(null);
     setNewCV(null);
     fetchCVs();
@@ -136,16 +140,6 @@ const AdminContact = () => {
   const handleDeleteCV = async (id) => {
     const confirm = window.confirm("Are you sure you want to delete the CV?");
     if (!confirm) return;
-
-    const cv = cvs.find((c) => c.id === id);
-    if (cv?.cvUrl) {
-      try {
-        const refToDelete = ref(storage, cv.cvUrl);
-        await deleteObject(refToDelete);
-      } catch (error) {
-        console.warn("CV file already missing in storage.");
-      }
-    }
 
     await deleteDoc(doc(db, "cvs", id));
     fetchCVs();
@@ -365,7 +359,7 @@ const AdminContact = () => {
         <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
           <input
             type="file"
-            accept=".pdf,.doc,.docx"
+            accept=".pdf"
             onChange={(e) => setNewCV(e.target.files[0])}
             style={{ flex: "1 1 300px" }}
           />
@@ -432,7 +426,7 @@ const AdminContact = () => {
                 flexWrap: "wrap",
               }}
             >
-              <a href={cv.cvUrl} target="_blank" rel="noreferrer" style={{ color: "#28a745" }}>
+              <a href={getCVViewUrl(cv)} target="_blank" rel="noreferrer" style={{ color: "#28a745" }}>
                 📄 View CV
               </a>
               <div style={{ marginTop: "0.5rem" }}>

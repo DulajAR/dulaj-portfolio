@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db, storage } from "../../firebase";
+import { db } from "../../firebase";
 import {
   collection,
   addDoc,
@@ -10,15 +10,10 @@ import {
   query,
   orderBy
 } from "firebase/firestore";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject
-} from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 
 const AdminCertificates = () => {
   const [certificates, setCertificates] = useState([]);
@@ -52,12 +47,12 @@ const AdminCertificates = () => {
 
     let fileUrl = newCert.fileUrl;
     let fileType = newCert.fileType;
+    let uploadedFile = null;
 
     if (file) {
       fileType = file.type.includes("pdf") ? "pdf" : "image";
-      const storageRef = ref(storage, `certificates/${file.name}`);
-      await uploadBytes(storageRef, file);
-      fileUrl = await getDownloadURL(storageRef);
+      uploadedFile = await uploadToCloudinary(file, { folder: "portfolio_upload/certificates" });
+      fileUrl = uploadedFile.url;
     }
 
     if (editingId) {
@@ -74,6 +69,8 @@ const AdminCertificates = () => {
         description,
         fileUrl,
         fileType,
+        filePublicId: uploadedFile?.publicId || newCert.filePublicId || "",
+        fileResourceType: uploadedFile?.resourceType || newCert.fileResourceType || "",
         order: certificates.length // new order field
       });
       alert("Certificate uploaded!");
@@ -90,7 +87,9 @@ const AdminCertificates = () => {
       description: cert.description,
       file: null,
       fileUrl: cert.fileUrl,
-      fileType: cert.fileType
+      fileType: cert.fileType,
+      filePublicId: cert.filePublicId || "",
+      fileResourceType: cert.fileResourceType || ""
     });
     setEditingId(cert.id);
   };
@@ -103,11 +102,6 @@ const AdminCertificates = () => {
   const handleDelete = async (cert) => {
     if (window.confirm("Are you sure you want to delete this certificate?")) {
       await deleteDoc(doc(db, "certificates", cert.id));
-      try {
-        const fileName = cert.fileUrl.split("%2F")[1].split("?")[0];
-        const storageRef = ref(storage, `certificates/${fileName}`);
-        await deleteObject(storageRef);
-      } catch {}
       fetchCertificates();
     }
   };

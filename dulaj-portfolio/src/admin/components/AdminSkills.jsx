@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db, storage } from "../../firebase";
+import { db } from "../../firebase";
 import {
   collection,
   getDocs,
@@ -8,8 +8,8 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { uploadToCloudinary } from "../../utils/cloudinary";
 
 const AdminSkills = () => {
   const [skills, setSkills] = useState([]);
@@ -43,11 +43,13 @@ const AdminSkills = () => {
   }, []);
 
   // Upload image
-  const uploadImage = async (file, skillId) => {
-    const storageRef = ref(storage, `skills/${skillId}-${file.name}`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    return { url, path: storageRef.fullPath };
+  const uploadImage = async (file) => {
+    const uploadedFile = await uploadToCloudinary(file, { folder: "portfolio_upload/skills" });
+    return {
+      url: uploadedFile.url,
+      publicId: uploadedFile.publicId,
+      resourceType: uploadedFile.resourceType,
+    };
   };
 
   // Add skill
@@ -58,12 +60,17 @@ const AdminSkills = () => {
       const docRef = await addDoc(collection(db, "skills"), {
         name: newSkillName.trim(),
         imageUrl: "",
-        imagePath: "",
+        imagePublicId: "",
+        imageResourceType: "",
         order: skills.length,
       });
 
-      const { url, path } = await uploadImage(newSkillImage, docRef.id);
-      await updateDoc(doc(db, "skills", docRef.id), { imageUrl: url, imagePath: path });
+      const uploadedImage = await uploadImage(newSkillImage);
+      await updateDoc(doc(db, "skills", docRef.id), {
+        imageUrl: uploadedImage.url,
+        imagePublicId: uploadedImage.publicId,
+        imageResourceType: uploadedImage.resourceType,
+      });
 
       fetchSkills();
       setNewSkillName("");
@@ -79,7 +86,6 @@ const AdminSkills = () => {
   const handleDeleteSkill = async (skill) => {
     if (!window.confirm(`Delete skill "${skill.name}"?`)) return;
     try {
-      if (skill.imagePath) await deleteObject(ref(storage, skill.imagePath));
       await deleteDoc(doc(db, "skills", skill.id));
       fetchSkills();
     } catch (err) {
@@ -110,11 +116,10 @@ const AdminSkills = () => {
       let updateData = { name: updatingSkillName.trim() };
 
       if (updatingSkillImage) {
-        const oldSkill = skills.find((s) => s.id === updatingSkillId);
-        if (oldSkill.imagePath) await deleteObject(ref(storage, oldSkill.imagePath));
-        const { url, path } = await uploadImage(updatingSkillImage, updatingSkillId);
-        updateData.imageUrl = url;
-        updateData.imagePath = path;
+        const uploadedImage = await uploadImage(updatingSkillImage);
+        updateData.imageUrl = uploadedImage.url;
+        updateData.imagePublicId = uploadedImage.publicId;
+        updateData.imageResourceType = uploadedImage.resourceType;
       }
 
       await updateDoc(skillDocRef, updateData);
