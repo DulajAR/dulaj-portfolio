@@ -49,31 +49,44 @@ const AdminCertificates = () => {
     let fileType = newCert.fileType;
     let uploadedFile = null;
 
-    if (file) {
-      fileType = file.type.includes("pdf") ? "pdf" : "image";
-      uploadedFile = await uploadToCloudinary(file, { folder: "portfolio_upload/certificates" });
-      fileUrl = uploadedFile.url;
-    }
+    try {
+      if (file) {
+        const isPdf = file.type.includes("pdf") || file.name.toLowerCase().endsWith(".pdf");
+        fileType = isPdf ? "pdf" : "image";
+        uploadedFile = await uploadToCloudinary(file, {
+          folder: "portfolio_upload/certificates",
+          resourceType: isPdf ? "raw" : "image",
+        });
+        console.log("Cloudinary upload result:", uploadedFile);
+        fileUrl = uploadedFile.url;
+      }
 
-    if (editingId) {
-      await updateDoc(doc(db, "certificates", editingId), {
-        title,
-        description,
-        fileUrl,
-        fileType
-      });
-      alert("Certificate updated!");
-    } else {
-      await addDoc(collection(db, "certificates"), {
-        title,
-        description,
-        fileUrl,
-        fileType,
-        filePublicId: uploadedFile?.publicId || newCert.filePublicId || "",
-        fileResourceType: uploadedFile?.resourceType || newCert.fileResourceType || "",
-        order: certificates.length // new order field
-      });
-      alert("Certificate uploaded!");
+      if (editingId) {
+        await updateDoc(doc(db, "certificates", editingId), {
+          title,
+          description,
+          fileUrl,
+          fileType,
+          filePublicId: uploadedFile?.publicId || newCert.filePublicId || "",
+          fileResourceType: uploadedFile?.resourceType || newCert.fileResourceType || "",
+        });
+        alert("Certificate updated!");
+      } else {
+        await addDoc(collection(db, "certificates"), {
+          title,
+          description,
+          fileUrl,
+          fileType,
+          filePublicId: uploadedFile?.publicId || newCert.filePublicId || "",
+          fileResourceType: uploadedFile?.resourceType || newCert.fileResourceType || "",
+          order: certificates.length // new order field
+        });
+        alert("Certificate uploaded!");
+      }
+    } catch (err) {
+      console.error("Certificate upload/update failed:", err);
+      alert("Upload failed: " + (err.message || err));
+      return;
     }
 
     setNewCert({ title: "", description: "", file: null });
@@ -123,6 +136,14 @@ const AdminCertificates = () => {
     });
 
     await Promise.all(updates);
+  };
+
+  const getCertViewUrl = (cert) => {
+    if (!cert?.fileUrl) return "#";
+    if (cert.fileResourceType === "raw") {
+      return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(cert.fileUrl)}`;
+    }
+    return cert.fileUrl;
   };
 
   const containerVariants = {
@@ -251,7 +272,7 @@ const AdminCertificates = () => {
                         {cert.fileType === "image" ? (
                           <img src={cert.fileUrl} alt="certificate" style={styles.image} />
                         ) : (
-                          <iframe src={cert.fileUrl} title="PDF Preview" style={styles.pdfPreview} frameBorder="0" />
+                          <iframe src={getCertViewUrl(cert)} title="PDF Preview" style={styles.pdfPreview} frameBorder="0" />
                         )}
                         <div style={{ marginTop: "0.5rem", display: "flex", gap: "10px", justifyContent: "center" }}>
                           <motion.button
@@ -306,7 +327,7 @@ const AdminCertificates = () => {
                   <img src={previewCert.fileUrl} alt="Full Certificate" style={{ width: "100%", borderRadius: "10px" }} />
                 ) : (
                   <iframe
-                    src={previewCert.fileUrl}
+                    src={getCertViewUrl(previewCert)}
                     title="PDF Full View"
                     style={{ width: "100%", height: "600px", borderRadius: "10px" }}
                   />

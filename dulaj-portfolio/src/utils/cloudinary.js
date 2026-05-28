@@ -11,7 +11,6 @@ export const uploadToCloudinary = async (file, options = {}) => {
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
   formData.append("folder", options.folder || CLOUDINARY_FOLDER);
-  formData.append("access_mode", options.accessMode || "public");
   if (options.publicId) {
     formData.append("public_id", options.publicId);
   }
