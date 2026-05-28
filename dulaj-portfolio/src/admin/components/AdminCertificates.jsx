@@ -139,11 +139,7 @@ const AdminCertificates = () => {
   };
 
   const getCertViewUrl = (cert) => {
-    if (!cert?.fileUrl) return "#";
-    if (cert.fileResourceType === "raw") {
-      return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(cert.fileUrl)}`;
-    }
-    return cert.fileUrl;
+    return cert?.fileUrl || "#";
   };
 
   const containerVariants = {
