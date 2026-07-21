@@ -1,240 +1,191 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { motion } from "framer-motion";
-import { FaUniversity } from "react-icons/fa";
+import { motion } from "framer-motion"; // eslint-disable-line no-unused-vars
+import { FaGraduationCap, FaCalendarAlt } from "react-icons/fa";
+
+const statusConfig = {
+  Completed: { bg: "from-emerald-500/20 to-emerald-500/5", text: "text-emerald-400", dot: "bg-emerald-400", label: "Completed" },
+  Following: { bg: "from-blue-500/20 to-blue-500/5", text: "text-blue-400", dot: "bg-blue-400", label: "Following" },
+  Dropped: { bg: "from-red-500/20 to-red-500/5", text: "text-red-400", dot: "bg-red-400", label: "Dropped" },
+};
+
+const getInitials = (name) => {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).join("").substring(0, 2).toUpperCase();
+};
 
 const Education = () => {
   const [educations, setEducations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [imgErrors, setImgErrors] = useState({});
 
   useEffect(() => {
     const fetchEducations = async () => {
       try {
         const q = query(collection(db, "education"), orderBy("order", "asc"));
-        const querySnapshot = await getDocs(q);
-        const data = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setEducations(data);
-        setLoading(false);
+        const snapshot = await getDocs(q);
+        setEducations(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
       } catch (error) {
         console.error("Error fetching education:", error);
+      } finally {
         setLoading(false);
       }
     };
     fetchEducations();
   }, []);
 
+  const handleImgError = (id) => {
+    setImgErrors((prev) => ({ ...prev, [id]: true }));
+  };
+
+  if (loading) {
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-[var(--color-surface-dark)]">
+        <div className="loading-spinner"><p className="text-slate-400 mt-4">Loading Education...</p></div>
+      </section>
+    );
+  }
+
   return (
-    <section style={styles.section}>
-      <h2 className="edu-heading">🎓 My Education</h2>
+    <section
+      className="min-h-screen bg-[var(--color-surface-dark)] py-20 sm:py-24 relative overflow-hidden"
+      style={{ textAlign: "center" }}
+    >
+      <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-400/5 rounded-full blur-3xl" />
 
-      {loading ? (
-        <div style={styles.loaderContainer}>
-          <img
-            src="https://i.gifer.com/ZKZg.gif"
-            alt="Loading..."
-            style={styles.loaderImage}
-          />
-          <p style={{ color: "#fff", marginTop: "1rem", fontSize: "1.2rem" }}>
-            Loading education details...
+      <div className="relative z-10" style={{ width: "100%", maxWidth: "48rem", marginLeft: "auto", marginRight: "auto", paddingLeft: "1.5rem", paddingRight: "1.5rem" }}>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          style={{ textAlign: "center", marginBottom: "4rem" }}
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/25"
+          >
+            <FaGraduationCap className="text-white text-2xl" />
+          </motion.div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">
+            <span className="gradient-text">My Education</span>
+          </h2>
+          <p style={{ color: "#94a3b8", fontSize: "0.875rem", maxWidth: "28rem", margin: "0 auto", textAlign: "center" }}>
+            Academic journey and qualifications that shaped my career
           </p>
-        </div>
-      ) : (
-        <div style={styles.grid}>
-          {educations.map((edu, index) => (
+          <div className="w-20 h-1 bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full mx-auto mt-6" />
+        </motion.div>
+
+        {/* Timeline */}
+        <div style={{ position: "relative", textAlign: "left" }}>
+          {/* Vertical line */}
+          <div style={{ position: "absolute", top: 0, bottom: 0, left: "23px", width: "1px", background: "linear-gradient(to bottom, rgba(99,102,241,0.6), rgba(34,211,238,0.4), transparent)" }} />
+
+          {/* Pulsing glow */}
+          <div style={{ position: "absolute", top: 0, bottom: 0, left: "23px", width: "1px", overflow: "hidden" }}>
             <motion.div
-              key={edu.id}
-              className="edu-card"
-              style={styles.card}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              whileHover={{
-                scale: 1.03,
-              }}
-            >
-              {/* Top Black Strip with University */}
-              <div style={styles.uniBar}>
-                <FaUniversity style={styles.uniIcon} />
-                <span style={styles.uniText}>{edu.university}</span>
-              </div>
+              style={{ width: "100%", height: "96px", background: "linear-gradient(to bottom, transparent, rgba(129,140,248,0.3), transparent)" }}
+              animate={{ y: ["-100%", "800%"] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            />
+          </div>
 
-              {/* Field */}
-              {edu.field && <p style={styles.field}>{edu.field}</p>}
+          <div className="space-y-5 sm:space-y-7">
+            {educations.map((edu, index) => {
+              const sc = statusConfig[edu.status] || statusConfig.Following;
+              const hasLogo = edu.logoUrl && !imgErrors[edu.id];
 
-              {/* Colorful Animated Divider */}
-              <div className="color-bar"></div>
-
-              {/* Status */}
-              {edu.status && (
-                <p
-                  style={{
-                    ...styles.status,
-                    color:
-                      edu.status === "Completed"
-                        ? "#38a169"
-                        : edu.status === "Following"
-                        ? "#3182ce"
-                        : "#e53e3e",
-                    fontWeight: "bold",
-                  }}
+              return (
+                <motion.div
+                  key={edu.id}
+                  initial={{ opacity: 0, x: -30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.12 }}
+                  style={{ position: "relative", paddingLeft: "60px" }}
                 >
-                  {edu.status}
-                </p>
-              )}
+                  {/* Timeline dot */}
+                  <div style={{ position: "absolute", top: "28px", left: "19px", zIndex: 10 }}>
+                    <div className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full ${sc.dot}`} style={{ boxShadow: "0 0 0 4px var(--color-surface-dark), 0 0 12px rgba(99,102,241,0.3)" }} />
+                    <div className={`absolute inset-0 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full ${sc.dot} animate-ping opacity-25`} />
+                  </div>
 
-              {/* Years */}
-              <div style={styles.dateContainer}>
-                {edu.startYear && <span>{edu.startYear}</span>}
-                {edu.endYear && <span>{edu.endYear}</span>}
-              </div>
-            </motion.div>
-          ))}
+                  {/* Card */}
+                  <div className="bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-2xl p-5 sm:p-6 hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-500 group-hover:shadow-xl group-hover:shadow-indigo-500/5">
+                    <div className="flex items-start gap-4 sm:gap-5">
+                      {/* University Logo */}
+                      <div className="flex-shrink-0">
+                        {hasLogo ? (
+                          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden border-2 border-white/10 shadow-lg group-hover:scale-105 transition-transform duration-500">
+                            <img
+                              src={edu.logoUrl}
+                              alt={edu.university}
+                              className="w-full h-full object-cover"
+                              onError={() => handleImgError(edu.id)}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-cyan-400/20 border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                            <span className="text-lg sm:text-xl font-bold text-indigo-400">
+                              {getInitials(edu.university)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm sm:text-base lg:text-lg font-bold text-white group-hover:text-indigo-300 transition-colors duration-300 leading-tight mb-1">
+                          {edu.university}
+                        </h3>
+                        {edu.field && (
+                          <p className="text-slate-400 text-xs sm:text-sm mb-3 group-hover:text-slate-300 transition-colors">
+                            {edu.field}
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gradient-to-r ${sc.bg} ${sc.text} border border-white/5`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                            {sc.label}
+                          </span>
+
+                          {(edu.startYear || edu.endYear) && (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-mono">
+                              <FaCalendarAlt className="text-[9px] text-slate-600" />
+                              {edu.startYear || "—"}
+                              {edu.startYear && edu.endYear && " — "}
+                              {edu.endYear || "Present"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* End dot */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            style={{ position: "absolute", bottom: "-12px", left: "20px", zIndex: 10 }}
+          >
+            <div className="w-2.5 h-2.5 rounded-full bg-slate-600" style={{ boxShadow: "0 0 0 3px var(--color-surface-dark)" }} />
+          </motion.div>
         </div>
-      )}
-
-      {/* Extra CSS */}
-      <style>{`
-        html, body {
-          margin: 0;
-          padding: 0;
-          background-color: #0f172a !important;
-          height: 100%;
-          width: 100%;
-        }
-
-        #root {
-          min-height: 100vh;
-          background-color: #0f172a;
-        }
-
-        .edu-heading {
-          font-size: 3rem;
-          font-weight: 900;
-          text-align: center;
-          color: #ffffff;
-          margin-bottom: 2rem;
-          background: linear-gradient(90deg, #667eea, #764ba2);
-          padding: 0.6rem 1rem;
-          border-radius: 12px;
-          box-shadow: 0 0 12px rgba(255,255,255,0.5);
-          text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
-        }
-
-        @media (max-width: 768px) {
-          .edu-heading {
-            font-size: 2.2rem;
-          }
-        }
-
-        /* Animated colorful wave bar */
-        .color-bar {
-          height: 4px;
-          background: linear-gradient(
-            270deg,
-            #ff0080,
-            #ff8c00,
-            #40e0d0,
-            #ff0080
-          );
-          background-size: 600% 600%;
-          border-radius: 5px;
-          margin: 0.8rem 0 1rem;
-          animation: waveMove 4s ease infinite;
-        }
-
-        /* Glowing border effect on hover */
-        .edu-card {
-          transition: box-shadow 0.3s ease, border 0.3s ease;
-          border: 2px solid transparent;
-        }
-        .edu-card:hover {
-          border: 2px solid #fbbf24;
-          box-shadow: 0 0 15px #fbbf24;
-        }
-
-        @keyframes waveMove {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-      `}</style>
+      </div>
     </section>
   );
 };
-
-const styles = {
-  section: {
-    padding: "3rem 1rem",
-    maxWidth: "1100px",
-    margin: "0 auto",
-    fontFamily: "Arial, sans-serif",
-    backgroundColor: "#0f172a",
-    minHeight: "100vh",
-  },
-  loaderContainer: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    marginTop: "2rem",
-  },
-  loaderImage: {
-    width: "120px",
-    height: "120px",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "1.5rem",
-  },
-  card: {
-    padding: "1.5rem",
-    background: "linear-gradient(135deg, #1f2937, #374151)",
-    borderRadius: "12px",
-    color: "#fff",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-    cursor: "pointer",
-    transition: "all 0.3s ease",
-    textAlign: "center",
-    overflow: "hidden",
-  },
-  uniBar: {
-    backgroundColor: "#000",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "0.4rem",
-    padding: "0.6rem",
-    borderRadius: "8px 8px 0 0",
-    margin: "-1.5rem -1.5rem 1rem -1.5rem",
-  },
-  uniIcon: {
-    color: "#fbbf24",
-    fontSize: "1.5rem",
-  },
-  uniText: {
-    fontSize: "1.4rem", // larger text for university
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  field: { fontSize: "1rem", marginBottom: "0.5rem", color: "#e2e8f0" },
-  status: { fontSize: "1rem", marginBottom: "0.5rem" },
-  dateContainer: {
-    display: "flex",
-    justifyContent: "space-around",
-    fontSize: "0.9rem",
-    color: "#cbd5e1",
-    marginTop: "0.5rem",
-  },
-};
-
-
-
-
-
-
 
 export default Education;

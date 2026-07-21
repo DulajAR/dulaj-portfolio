@@ -1,184 +1,141 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { motion } from "framer-motion"; // eslint-disable-line no-unused-vars
+import { FaBolt } from "react-icons/fa";
+
+const getInitials = (name) => {
+  if (!name) return "?";
+  return name.substring(0, 2).toUpperCase();
+};
+
+const gradients = [
+  "from-indigo-500 to-cyan-400",
+  "from-purple-500 to-pink-400",
+  "from-emerald-500 to-teal-400",
+  "from-orange-500 to-amber-400",
+  "from-rose-500 to-red-400",
+  "from-sky-500 to-blue-400",
+  "from-fuchsia-500 to-purple-400",
+  "from-lime-500 to-green-400",
+];
 
 const Skills = () => {
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const fetchSkills = async () => {
-    setLoading(true);
-    try {
-      const skillsCol = collection(db, "skills");
-      const skillsSnapshot = await getDocs(skillsCol);
-      const skillsList = skillsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setSkills(skillsList);
-    } catch (error) {
-      console.error("Error fetching skills:", error);
-    }
-    setLoading(false);
-  };
+  const [imgErrors, setImgErrors] = useState({});
 
   useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "skills"));
+        setSkills(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      } catch (error) {
+        console.error("Error fetching skills:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchSkills();
   }, []);
 
-  if (loading)
-    return (
-      <section
-        className="skills-section"
-        style={{
-          background: "#0f172a",
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "column",
-        }}
-      >
-        <img
-          src="https://i.gifer.com/ZKZg.gif"
-          alt="Loading..."
-          style={{ width: "100px", height: "100px" }}
-        />
-        <p style={{ color: "#fff", marginTop: "1rem", fontSize: "1.2rem" }}>
-          Loading Skills...
-        </p>
-      </section>
-    );
+  const handleImgError = (id) => {
+    setImgErrors((prev) => ({ ...prev, [id]: true }));
+  };
 
-  if (skills.length === 0)
+  if (loading) {
     return (
-      <section className="skills-section">
-        <h2 className="fancy-heading">SKILLS</h2>
-        <p style={{ textAlign: "center" }}>No skills added yet.</p>
+      <section className="min-h-screen flex items-center justify-center bg-[var(--color-surface-dark)]">
+        <div className="loading-spinner"><p className="text-slate-400 mt-4">Loading Skills...</p></div>
       </section>
     );
+  }
 
   return (
-    <section id="skills" className="skills-section">
-      <h2 className="fancy-heading">SKILLS</h2>
+    <section className="min-h-screen bg-[var(--color-surface-dark)] py-20 sm:py-24 relative overflow-hidden">
+      <div className="absolute top-40 left-0 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-40 right-0 w-96 h-96 bg-cyan-400/5 rounded-full blur-3xl" />
 
-      <div className="skills-grid">
-        {skills.map((skill) => (
-          <div key={skill.id} className="skill-card">
-            <img
-              src={skill.imageUrl || ""}
-              alt={skill.name}
-              className="skill-logo"
-              onError={(e) => {
-                e.target.src = "/fallback-image.png";
-              }}
-            />
-            <p className="skill-name">{skill.name}</p>
+      <div className="section-center relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          style={{ textAlign: "center", marginBottom: "4rem" }}
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/25"
+          >
+            <FaBolt className="text-white text-2xl" />
+          </motion.div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">
+            <span className="gradient-text">Skills</span>
+          </h2>
+          <p style={{ color: "#94a3b8", fontSize: "0.875rem", maxWidth: "28rem", margin: "0 auto", textAlign: "center" }}>
+            Technologies and tools I work with
+          </p>
+          <div className="w-20 h-1 bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full mx-auto mt-6" />
+        </motion.div>
+
+        {skills.length === 0 ? (
+          <p className="text-slate-400 text-center">No skills added yet.</p>
+        ) : (
+          <div style={{ maxWidth: "56rem", margin: "0 auto", textAlign: "center" }}>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
+              {skills.map((skill, idx) => {
+                const gradient = gradients[idx % gradients.length];
+                const hasImage = skill.imageUrl && !imgErrors[skill.id];
+
+                return (
+                  <motion.div
+                    key={skill.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-30px" }}
+                    transition={{ duration: 0.4, delay: idx * 0.05 }}
+                    whileHover={{ y: -8, scale: 1.05 }}
+                    className="group relative"
+                  >
+                    {/* Glow on hover */}
+                    <div className={`absolute -inset-1 bg-gradient-to-r ${gradient} rounded-2xl opacity-0 group-hover:opacity-10 blur-lg transition-opacity duration-500`} />
+
+                    <div className="relative bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center gap-3 hover:bg-white/[0.07] hover:border-white/[0.12] transition-all duration-500 cursor-default">
+                      {/* Icon */}
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center">
+                        {hasImage ? (
+                          <img
+                            src={skill.imageUrl}
+                            alt={skill.name}
+                            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-lg"
+                            onError={() => handleImgError(skill.id)}
+                          />
+                        ) : (
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${gradient} bg-opacity-20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                            <span className="text-sm sm:text-base font-bold text-white">
+                              {getInitials(skill.name)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Name */}
+                      <p className="text-[10px] sm:text-xs font-semibold text-slate-400 text-center group-hover:text-white transition-colors duration-300 leading-tight">
+                        {skill.name}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
-        ))}
+        )}
       </div>
-
-      <style>{`
-        .skills-section {
-          padding: 2rem;
-          text-align: center;
-          background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a1c4fd);
-          background-size: 400% 400%;
-          animation: gradientBG 15s ease infinite;
-          min-height: 100vh;
-        }
-
-        @keyframes gradientBG {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-
-        .fancy-heading {
-          font-size: 3rem;
-          text-align: center;
-          text-transform: uppercase;
-          color: #00ffff;
-          letter-spacing: 2px;
-          margin-bottom: 2rem;
-          position: relative;
-          animation: textFadeSlideUp 0.6s ease forwards;
-          text-shadow: 0 0 8px #00ffff, 0 0 16px #00ffff;
-        }
-
-        .fancy-heading::after {
-          content: "";
-          display: block;
-          width: 60px;
-          height: 3px;
-          margin: 10px auto 0;
-          background-color: #00ffff;
-          border-radius: 2px;
-          animation: underlineGrow 0.6s ease forwards;
-        }
-
-        @keyframes textFadeSlideUp {
-          0% { opacity: 0; transform: translateY(20px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes underlineGrow {
-          from { width: 0; }
-          to { width: 60px; }
-        }
-
-        @media (max-width: 768px) {
-          .fancy-heading {
-            font-size: 2.2rem;
-          }
-        }
-
-        .skills-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 1.5rem;
-          justify-items: center;
-          align-items: center;
-        }
-
-        .skill-card {
-          background: #ffffffcc;
-          border-radius: 12px;
-          padding: 1rem;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-          width: 150px;
-          height: 150px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .skill-card:hover {
-          transform: scale(1.1) rotate(2deg);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .skill-logo {
-          width: 70px;
-          height: 70px;
-          object-fit: contain;
-          margin-bottom: 0.5rem;
-          transition: transform 0.3s ease;
-        }
-
-        .skill-card:hover .skill-logo {
-          transform: rotate(15deg) scale(1.2);
-        }
-
-        .skill-name {
-          font-size: 0.95rem;
-          color: #333;
-          font-weight: 600;
-          margin: 0;
-        }
-      `}</style>
     </section>
   );
 };

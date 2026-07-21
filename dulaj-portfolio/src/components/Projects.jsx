@@ -1,21 +1,20 @@
-// src/components/Projects.jsx
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion"; // eslint-disable-line no-unused-vars
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import DOMPurify from "dompurify";
-import backgroundImage from "../assets/project.png";
+import { FaCode, FaExternalLinkAlt } from "react-icons/fa";
 
-// Tech icons
 const techIcons = {
-  React: "⚛️",
-  "React + Vite": "⚛️✨",
-  Firebase: "🔥",
-  Cloudinary: "☁️",
-  JavaScript: "🟨",
+  React: "\u269B\uFE0F",
+  "React + Vite": "\u269B\uFE0F\u2728",
+  Firebase: "\uD83D\uDD25",
+  Cloudinary: "\u2601\uFE0F",
+  JavaScript: "\uD83D\uDFE8",
 };
 
-// ---------- Helpers ----------
 const ensureHttp = (url) => /^https?:\/\//i.test(url) ? url : `http://${url}`;
+
 const displayUrl = (href) => {
   try {
     const u = new URL(href);
@@ -27,151 +26,233 @@ const displayUrl = (href) => {
   }
 };
 
-// ---------- Render sanitized and clickable HTML ----------
 const RenderDescription = ({ text }) => {
   if (!text) return null;
-
-  // Sanitize raw HTML from Firebase
   let clean = DOMPurify.sanitize(text, {
-    ALLOWED_TAGS: ["b","i","em","strong","p","br","ul","ol","li","a","span","div"],
-    ALLOWED_ATTR: ["href", "target", "rel", "style"]
+    ALLOWED_TAGS: ["b", "i", "em", "strong", "p", "br", "ul", "ol", "li", "a", "span", "div"],
+    ALLOWED_ATTR: ["href", "target", "rel", "style"],
   });
-
-  // Regex to replace plain URLs with clickable links
   const urlRegex = /(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+)/gi;
   clean = clean.replace(urlRegex, (url) => {
     const href = ensureHttp(url);
-    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${displayUrl(href)}</a>`;
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:text-indigo-300 underline">${displayUrl(href)}</a>`;
   });
-
   return <span dangerouslySetInnerHTML={{ __html: clean }} />;
 };
 
-// ---------- Projects Component ----------
 const Projects = () => {
   const [projects, setProjects] = useState([]);
   const [mediaIndices, setMediaIndices] = useState({});
   const [selectedProject, setSelectedProject] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Fetch projects from Firebase
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         const snapshot = await getDocs(collection(db, "projects"));
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setProjects(data);
-        setLoading(false);
+        setProjects(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
       } catch (err) {
         console.error("Error fetching projects:", err);
-        setError("Failed to load projects.");
+      } finally {
         setLoading(false);
       }
     };
     fetchProjects();
   }, []);
 
-  // Auto-rotate media
   useEffect(() => {
     const interval = setInterval(() => {
-      setMediaIndices(prev => {
-        const newIndices = { ...prev };
-        projects.forEach(p => {
-          const mediaLength = p.media?.length || 0;
-          if (mediaLength > 1) {
-            newIndices[p.id] = (newIndices[p.id] || 0) + 1;
-            if (newIndices[p.id] >= mediaLength) newIndices[p.id] = 0;
-          }
+      setMediaIndices((prev) => {
+        const next = { ...prev };
+        projects.forEach((p) => {
+          const len = p.media?.length || 0;
+          if (len > 1) next[p.id] = ((next[p.id] || 0) + 1) % len;
         });
-        return newIndices;
+        return next;
       });
     }, 5000);
     return () => clearInterval(interval);
   }, [projects]);
 
-  if (loading) return (
-    <section className="projects-section" style={{ backgroundColor: "#0f172a", minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
-      <img src="https://i.gifer.com/ZKZg.gif" alt="Loading..." style={{ width: "120px", height: "120px" }} />
-      <p style={{ color: "#fff", marginTop: "1rem", fontSize: "1.2rem" }}>Loading Projects...</p>
-    </section>
-  );
-
-  if (error) return (
-    <section className="projects-section">
-      <h2 className="fancy-heading">PROJECTS</h2>
-      <p style={{ color: "red" }}>{error}</p>
-    </section>
-  );
+  if (loading) {
+    return (
+      <section className="min-h-screen flex items-center justify-center bg-[var(--color-surface-dark)]">
+        <div className="loading-spinner"><p className="text-slate-400 mt-4">Loading Projects...</p></div>
+      </section>
+    );
+  }
 
   return (
-    <section
-      className="projects-section"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        padding: "3rem 1rem",
-        minHeight: "100vh",
-      }}
-    >
-      <h2 className="fancy-heading">PROJECTS</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", maxWidth: "1200px", margin: "0 auto" }}>
-        {projects.map(project => {
-          const currentIndex = mediaIndices[project.id] || 0;
-          const media = project.media?.[currentIndex];
-          const techArray = Array.isArray(project.technologies)
-            ? project.technologies
-            : typeof project.technologies === "string"
-            ? project.technologies.split(",").map(t => t.trim()).filter(Boolean)
-            : [];
+    <section className="min-h-screen bg-[var(--color-surface-dark)] py-20 sm:py-24 relative overflow-hidden">
+      <div className="absolute top-20 right-10 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-10 w-96 h-96 bg-cyan-400/5 rounded-full blur-3xl" />
 
-          return (
-            <div key={project.id} className="project-card" onClick={() => setSelectedProject(project)}>
-              <h3>{project.title}</h3>
-              {media ? (media.type?.startsWith?.("video") ? <video src={media.url} controls className="media" /> : <img src={media.url} alt={`${project.title} preview`} className="media" />) : <p>No media available</p>}
-              <div className="summary" onClick={e => e.stopPropagation()}>
-                <RenderDescription text={project.summary || project.description || ""} />
-              </div>
-              <div className="tech-container">
-                {techArray.map((tech, idx) => <span key={idx} className="tech-tag">{techIcons[tech] || "🔧"} {tech}</span>)}
-              </div>
-            </div>
-          );
-        })}
+      <div className="section-center relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          style={{ textAlign: "center", marginBottom: "4rem" }}
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-500/25"
+          >
+            <FaCode className="text-white text-2xl" />
+          </motion.div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4">
+            <span className="gradient-text">Projects</span>
+          </h2>
+          <p style={{ color: "#94a3b8", fontSize: "0.875rem", maxWidth: "28rem", margin: "0 auto", textAlign: "center" }}>
+            A showcase of my recent work and creative experiments
+          </p>
+          <div className="w-20 h-1 bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full mx-auto mt-6" />
+        </motion.div>
+
+        {/* Project Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6" style={{ maxWidth: "72rem", margin: "0 auto" }}>
+          {projects.map((project, idx) => {
+            const currentIndex = mediaIndices[project.id] || 0;
+            const media = project.media?.[currentIndex];
+            const techArray = Array.isArray(project.technologies)
+              ? project.technologies
+              : typeof project.technologies === "string"
+              ? project.technologies.split(",").map((t) => t.trim()).filter(Boolean)
+              : [];
+
+            return (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                onClick={() => setSelectedProject(project)}
+                className="group relative cursor-pointer"
+              >
+                {/* Glow */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-cyan-400/20 rounded-3xl opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-700" />
+
+                <div className="relative bg-white/[0.03] backdrop-blur-sm border border-white/[0.06] rounded-2xl overflow-hidden hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10">
+                  {/* Media */}
+                  <div className="relative h-48 sm:h-52 overflow-hidden">
+                    {media ? (
+                      media.type?.startsWith?.("video") ? (
+                        <video src={media.url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      ) : (
+                        <img src={media.url} alt={project.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      )
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-indigo-500/20 to-cyan-400/20 flex items-center justify-center">
+                        <FaCode className="text-4xl text-indigo-400/40" />
+                      </div>
+                    )}
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-surface-dark)] via-transparent to-transparent opacity-70" />
+
+                    {/* View button */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold flex items-center gap-2">
+                        <FaExternalLinkAlt className="text-[10px]" />
+                        View Details
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-5 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors duration-300">
+                      {project.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-400 mb-4 line-clamp-2">
+                      <RenderDescription text={project.summary || project.description || ""} />
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {techArray.slice(0, 4).map((tech, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-500/10 to-cyan-400/10 text-[10px] sm:text-xs font-medium text-slate-300 border border-white/5">
+                          {techIcons[tech] || "\uD83D\uDD27"} {tech}
+                        </span>
+                      ))}
+                      {techArray.length > 4 && (
+                        <span className="px-2.5 py-1 rounded-lg bg-white/5 text-[10px] sm:text-xs text-slate-500">+{techArray.length - 4}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
 
-      {selectedProject && (
-        <div onClick={() => setSelectedProject(null)} style={{ position: "fixed", top:0,left:0,width:"100vw",height:"100vh",backgroundColor:"rgba(0,0,0,0.7)",display:"flex",justifyContent:"center",alignItems:"center",padding:20,zIndex:9999 }}>
-          <div onClick={e => e.stopPropagation()} style={{ backgroundColor:"white",padding:20,borderRadius:10,maxWidth:800,maxHeight:"90vh",overflowY:"auto" }}>
-            <h2>{selectedProject.title}</h2>
-            <div style={{ display:"flex",flexWrap:"wrap",gap:10,marginBottom:20,justifyContent:"center" }}>
-              {selectedProject.media?.map((item,i) => item.type?.startsWith?.("video") ? <video key={item.url||i} src={item.url} controls style={{ maxWidth:"48%", maxHeight:200, borderRadius:8 }} /> : <img key={item.url||i} src={item.url} alt={`${selectedProject.title} media ${i+1}`} style={{ maxWidth:"48%", maxHeight:200, borderRadius:8, objectFit:"contain" }} />)}
-            </div>
-            <div className="modal-description">
-              <RenderDescription text={selectedProject.description || ""} />
-            </div>
-            <div style={{ marginTop:15, display:"flex", flexWrap:"wrap", gap:8, justifyContent:"center" }}>
-              {(Array.isArray(selectedProject.technologies) ? selectedProject.technologies : (selectedProject.technologies||"").split(",").map(t=>t.trim()).filter(Boolean)).map((tech,idx) => <span key={idx} style={{ display:"flex", alignItems:"center", backgroundColor:"#007bff", borderRadius:12, padding:"6px 12px", fontSize:"0.85rem", fontWeight:"600", color:"#fff", userSelect:"none" }}>{techIcons[tech] || "🔧"} {tech}</span>)}
-            </div>
-            <button onClick={() => setSelectedProject(null)}>Close</button>
-          </div>
-        </div>
-      )}
+      {/* Modal */}
+      <AnimatePresence>
+        {selectedProject && (
+          <motion.div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedProject(null)}
+          >
+            <motion.div
+              className="bg-[var(--color-surface)] border border-white/10 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-[var(--color-surface)]/90 backdrop-blur-sm border-b border-white/5 px-6 py-4 flex items-center justify-between z-10">
+                <h2 className="text-lg sm:text-xl font-bold text-white">{selectedProject.title}</h2>
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/20 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
 
-      <style>{`
-        .fancy-heading { font-size:3rem; text-align:center; text-transform:uppercase; color:#00ffff; letter-spacing:2px; margin-bottom:2rem; position:relative; animation:textFadeSlideUp 0.6s ease forwards; text-shadow:0 0 8px #00ffff, 0 0 16px #00ffff; }
-        .fancy-heading::after { content:""; display:block; width:60px; height:3px; margin:10px auto 0; background-color:#00ffff; border-radius:2px; animation:underlineGrow 0.6s ease forwards; }
-        @keyframes textFadeSlideUp { 0%{opacity:0;transform:translateY(20px);}100%{opacity:1;transform:translateY(0);} }
-        @keyframes underlineGrow { from{width:0;} to{width:60px;} }
-        .project-card { border:1px solid #ddd; border-radius:10px; padding:16px; background-color:#ffffffcc; box-shadow:0 2px 8px rgba(0,0,0,0.1); cursor:pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; color:#000; }
-        .project-card:hover { transform:scale(1.05); box-shadow:0 8px 20px rgba(0,123,255,0.3); }
-        .media { width:100%; border-radius:8px; max-height:180px; object-fit:cover; margin-bottom:8px; }
-        .tech-tag { background-color:#007bff; color:#fff; border-radius:12px; padding:4px 10px; font-size:0.75rem; font-weight:600; margin-right:6px; }
-        .summary a, .modal-description a { color:#007bff; text-decoration:underline; }
-        button { margin-top:20px; padding:0.6rem 1.2rem; border-radius:6px; border:none; cursor:pointer; background-color:#dc3545; color:#fff; }
-        button:hover { background-color:#a71d2a; transform:scale(1.05); }
-      `}</style>
+              <div className="p-6 sm:p-8">
+                {/* Media Gallery */}
+                {selectedProject.media?.length > 0 && (
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    {selectedProject.media.map((item, i) =>
+                      item.type?.startsWith?.("video") ? (
+                        <video key={item.url || i} src={item.url} controls className="w-full sm:w-[48%] rounded-xl max-h-60 object-contain bg-black/20" />
+                      ) : (
+                        <img key={item.url || i} src={item.url} alt={`${selectedProject.title} ${i + 1}`} className="w-full sm:w-[48%] rounded-xl max-h-60 object-contain" />
+                      )
+                    )}
+                  </div>
+                )}
+
+                {/* Description */}
+                <div className="text-sm sm:text-base text-slate-300 leading-relaxed mb-6">
+                  <RenderDescription text={selectedProject.description || ""} />
+                </div>
+
+                {/* Tech Stack */}
+                <div>
+                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Technologies Used</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {(Array.isArray(selectedProject.technologies) ? selectedProject.technologies : (selectedProject.technologies || "").split(",").map((t) => t.trim()).filter(Boolean)).map((tech, i) => (
+                      <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500/15 to-cyan-400/15 text-xs sm:text-sm font-medium text-white border border-white/10">
+                        {techIcons[tech] || "\uD83D\uDD27"} {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };

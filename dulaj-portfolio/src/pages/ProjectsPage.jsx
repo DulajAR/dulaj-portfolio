@@ -1,15 +1,12 @@
 import React from "react";
-import Header from "../components/Header";
+import Layout from "../components/Layout";
 import Projects from "../components/Projects";
-import Footer from "../components/Footer";
 
 const ProjectsPage = () => {
   return (
-    <div>
-      <Header />
+    <Layout>
       <Projects />
-      <Footer />
-    </div>
+    </Layout>
   );
 };
 

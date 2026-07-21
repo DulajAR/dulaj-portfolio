@@ -1,15 +1,12 @@
 import React from "react";
-import Header from "../components/Header";
+import Layout from "../components/Layout";
 import Skills from "../components/Skills";
-import Footer from "../components/Footer";
 
 const SkillsPage = () => {
   return (
-    <div>
-      <Header />
+    <Layout>
       <Skills />
-      <Footer />
-    </div>
+    </Layout>
   );
 };
 

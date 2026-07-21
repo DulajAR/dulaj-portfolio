@@ -1,15 +1,12 @@
 import React from "react";
-import Header from "../components/Header";
+import Layout from "../components/Layout";
 import Education from "../components/Education";
-import Footer from "../components/Footer";
 
 const EducationPage = () => {
   return (
-    <div>
-      <Header />
+    <Layout>
       <Education />
-      <Footer />
-    </div>
+    </Layout>
   );
 };
 

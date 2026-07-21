@@ -1,15 +1,12 @@
 import React from "react";
-import Header from "../components/Header";
+import Layout from "../components/Layout";
 import Contact from "../components/Contact";
-import Footer from "../components/Footer";
 
 const ContactPage = () => {
   return (
-    <div>
-      <Header />
+    <Layout>
       <Contact />
-      <Footer />
-    </div>
+    </Layout>
   );
 };
 

@@ -1,15 +1,12 @@
 import React from "react";
-import Header from "../components/Header";
+import Layout from "../components/Layout";
 import Certificates from "../components/Certificates";
-import Footer from "../components/Footer";
 
 const CertificatesPage = () => {
   return (
-    <div>
-      <Header />
+    <Layout>
       <Certificates />
-      <Footer />
-    </div>
+    </Layout>
   );
 };
 

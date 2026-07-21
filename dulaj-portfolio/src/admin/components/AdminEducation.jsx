@@ -16,7 +16,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const AdminEducation = () => {
   const [educations, setEducations] = useState([]);
-  const [newEdu, setNewEdu] = useState({ university: "", field: "", status: "" });
+  const [newEdu, setNewEdu] = useState({ university: "", field: "", status: "", logoUrl: "" });
   const [editingId, setEditingId] = useState(null);
 
   const navigate = useNavigate();
@@ -38,31 +38,33 @@ const AdminEducation = () => {
 
   // Add or update entry
   const handleSave = async () => {
-    const { university, field, status } = newEdu;
+    const { university, field, status, logoUrl } = newEdu;
     if (!university || !field || !status) return alert("All fields are required!");
 
+    const eduData = { university, field, status, logoUrl: logoUrl || "" };
+
     if (editingId) {
-      await updateDoc(doc(db, "education", editingId), { university, field, status });
+      await updateDoc(doc(db, "education", editingId), eduData);
       alert("Education updated!");
     } else {
       const maxOrder = educations.length > 0 ? Math.max(...educations.map(e => e.order || 0)) : 0;
-      await addDoc(collection(db, "education"), { university, field, status, order: maxOrder + 1 });
+      await addDoc(collection(db, "education"), { ...eduData, order: maxOrder + 1 });
       alert("Education added!");
     }
 
-    setNewEdu({ university: "", field: "", status: "" });
+    setNewEdu({ university: "", field: "", status: "", logoUrl: "" });
     setEditingId(null);
     fetchEducations();
   };
 
   const handleEdit = (edu) => {
-    setNewEdu({ university: edu.university, field: edu.field, status: edu.status });
+    setNewEdu({ university: edu.university, field: edu.field, status: edu.status, logoUrl: edu.logoUrl || "" });
     setEditingId(edu.id);
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setNewEdu({ university: "", field: "", status: "" });
+    setNewEdu({ university: "", field: "", status: "", logoUrl: "" });
   };
 
   const handleDelete = async (edu) => {
@@ -137,6 +139,13 @@ const AdminEducation = () => {
             <option value="Following">Following</option>
             <option value="Dropped">Dropped</option>
           </select>
+          <input
+            type="text"
+            placeholder="University Logo URL (optional)"
+            value={newEdu.logoUrl}
+            onChange={(e) => setNewEdu({ ...newEdu, logoUrl: e.target.value })}
+            style={styles.input}
+          />
 
           <div style={{ display: "flex", gap: "10px" }}>
             <motion.button onClick={handleSave} style={styles.uploadButton} whileHover={{ scale: 1.05 }}>
