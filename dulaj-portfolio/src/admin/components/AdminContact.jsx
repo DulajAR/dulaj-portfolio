@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import {
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc,
+  collection, addDoc, getDocs, updateDoc, deleteDoc, doc,
 } from "firebase/firestore";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { uploadToCloudinary } from "../../utils/cloudinary";
@@ -17,12 +11,9 @@ const AdminContact = () => {
   const [newType, setNewType] = useState("");
   const [newLink, setNewLink] = useState("");
   const [editingContactId, setEditingContactId] = useState(null);
-
   const [cvs, setCVs] = useState([]);
   const [newCV, setNewCV] = useState(null);
   const [editingCVId, setEditingCVId] = useState(null);
-
-  const navigate = useNavigate();
 
   const contactsRef = collection(db, "contacts");
   const cvsRef = collection(db, "cvs");
@@ -40,293 +31,114 @@ const AdminContact = () => {
     setCVs(data);
   };
 
-  useEffect(() => {
-    fetchContacts();
-    fetchCVs();
-  }, []);
+  useEffect(() => { fetchContacts(); fetchCVs(); }, []);
 
   const handleAddOrUpdateContact = async () => {
     if (!newType || !newLink) return;
-
     if (editingContactId) {
-      const contactRef = doc(db, "contacts", editingContactId);
-      await updateDoc(contactRef, { type: newType, link: newLink });
+      await updateDoc(doc(db, "contacts", editingContactId), { type: newType, link: newLink });
       alert("Contact updated successfully!");
     } else {
       await addDoc(contactsRef, { type: newType, link: newLink, order: contacts.length });
       alert("Contact added successfully!");
     }
-
-    setNewType("");
-    setNewLink("");
-    setEditingContactId(null);
-    fetchContacts();
+    setNewType(""); setNewLink(""); setEditingContactId(null); fetchContacts();
   };
 
   const handleEditContact = (contact) => {
-    setEditingContactId(contact.id);
-    setNewType(contact.type);
-    setNewLink(contact.link);
+    setEditingContactId(contact.id); setNewType(contact.type); setNewLink(contact.link);
   };
 
   const handleDeleteContact = async (id) => {
-    const confirm = window.confirm("Are you sure you want to delete this contact?");
-    if (!confirm) return;
-
-    await deleteDoc(doc(db, "contacts", id));
-    fetchContacts();
-    alert("Contact deleted!");
+    if (!window.confirm("Are you sure you want to delete this contact?")) return;
+    await deleteDoc(doc(db, "contacts", id)); fetchContacts(); alert("Contact deleted!");
   };
 
   const uploadCVFile = async (file) => {
-    return uploadToCloudinary(file, {
-      folder: "portfolio_upload/cvs",
-      resourceType: "image",
-    });
+    return uploadToCloudinary(file, { folder: "portfolio_upload/cvs", resourceType: "image" });
   };
 
   const getCVViewUrl = (cv) => {
     if (!cv?.cvUrl) return "#";
-
     if (cv.cvResourceType === "raw") {
       return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(cv.cvUrl)}`;
     }
-
     return cv.cvUrl;
   };
 
   const handleAddCV = async () => {
-    if (!newCV) {
-      alert("Please select a CV file.");
-      return;
-    }
-
-    if (cvs.length > 0) {
-      alert("Only one CV is allowed. Please delete or edit the existing one.");
-      return;
-    }
-
+    if (!newCV) return alert("Please select a CV file.");
+    if (cvs.length > 0) return alert("Only one CV is allowed. Please delete or edit the existing one.");
     const uploadedCV = await uploadCVFile(newCV);
-    await addDoc(cvsRef, {
-      cvUrl: uploadedCV.url,
-      cvPublicId: uploadedCV.publicId,
-      cvResourceType: uploadedCV.resourceType,
-    });
-    setNewCV(null);
-    fetchCVs();
-    alert("CV uploaded successfully!");
+    await addDoc(cvsRef, { cvUrl: uploadedCV.url, cvPublicId: uploadedCV.publicId, cvResourceType: uploadedCV.resourceType });
+    setNewCV(null); fetchCVs(); alert("CV uploaded successfully!");
   };
 
   const handleUpdateCV = async (id) => {
-    if (!newCV) {
-      alert("Please select a new file to update.");
-      return;
-    }
-
-    const docRef = doc(db, "cvs", id);
-
+    if (!newCV) return alert("Please select a new file to update.");
     const uploadedCV = await uploadCVFile(newCV);
-    await updateDoc(docRef, {
-      cvUrl: uploadedCV.url,
-      cvPublicId: uploadedCV.publicId,
-      cvResourceType: uploadedCV.resourceType,
-    });
-    setEditingCVId(null);
-    setNewCV(null);
-    fetchCVs();
-    alert("CV updated successfully!");
+    await updateDoc(doc(db, "cvs", id), { cvUrl: uploadedCV.url, cvPublicId: uploadedCV.publicId, cvResourceType: uploadedCV.resourceType });
+    setEditingCVId(null); setNewCV(null); fetchCVs(); alert("CV updated successfully!");
   };
 
   const handleDeleteCV = async (id) => {
-    const confirm = window.confirm("Are you sure you want to delete the CV?");
-    if (!confirm) return;
-
-    await deleteDoc(doc(db, "cvs", id));
-    fetchCVs();
-    alert("CV deleted successfully!");
+    if (!window.confirm("Are you sure you want to delete the CV?")) return;
+    await deleteDoc(doc(db, "cvs", id)); fetchCVs(); alert("CV deleted successfully!");
   };
 
-  // Drag & drop for contacts
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
     const reordered = Array.from(contacts);
     const [moved] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, moved);
     setContacts(reordered);
-
     try {
-      await Promise.all(
-        reordered.map((c, index) =>
-          updateDoc(doc(db, "contacts", c.id), { order: index })
-        )
-      );
-    } catch (err) {
-      console.error("Failed to save new order:", err);
-    }
+      await Promise.all(reordered.map((c, index) => updateDoc(doc(db, "contacts", c.id), { order: index })));
+    } catch (err) { console.error("Failed to save new order:", err); }
   };
 
   return (
-    <section
-      style={{
-        minHeight: "100vh",
-        padding: "3rem 1rem",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        display: "flex",
-        justifyContent: "center",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "800px",
-          width: "100%",
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
-          padding: "2.5rem",
-          borderRadius: "14px",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-        }}
-      >
-        {/* Contact Links */}
-        <h2
-          style={{
-            fontSize: "2.2rem",
-            textAlign: "center",
-            marginBottom: "1.5rem",
-            fontWeight: "bold",
-            background: "linear-gradient(90deg, #ff8a00, #e52e71)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}
-        >
-          📇 Manage Contact Links
-        </h2>
+    <div style={styles.pageContainer}>
+      <div style={styles.contentWrapper}>
+        <h2 style={styles.title}>Manage Contact Links</h2>
 
-        <button
-          onClick={() => navigate("/admin/dashboard")}
-          style={{
-            marginBottom: "2rem",
-            padding: "0.5rem 1rem",
-            backgroundColor: "#6c757d",
-            color: "#fff",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
-        >
-          ⬅ Back to Dashboard
-        </button>
-
-        {/* Add Contact Form */}
-        <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-          <input
-            type="text"
-            placeholder="Type (e.g., LinkedIn, GitHub)"
-            value={newType}
-            onChange={(e) => setNewType(e.target.value)}
-            style={{ padding: "0.5rem", borderRadius: "8px", border: "1px solid #ccc", flex: "1 1 200px" }}
-          />
-          <input
-            type="text"
-            placeholder="Link"
-            value={newLink}
-            onChange={(e) => setNewLink(e.target.value)}
-            style={{ padding: "0.5rem", borderRadius: "8px", border: "1px solid #ccc", flex: "2 1 300px" }}
-          />
-          <button
-            onClick={handleAddOrUpdateContact}
-            style={{
-              backgroundColor: editingContactId ? "#f0ad4e" : "#5cb85c",
-              color: "white",
-              border: "none",
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-            }}
-          >
+        <div style={styles.addRow}>
+          <input type="text" placeholder="Type (e.g., LinkedIn, GitHub)" value={newType}
+            onChange={(e) => setNewType(e.target.value)} style={{ ...styles.input, flex: "1 1 200px" }} />
+          <input type="text" placeholder="Link" value={newLink}
+            onChange={(e) => setNewLink(e.target.value)} style={{ ...styles.input, flex: "2 1 300px" }} />
+          <button onClick={handleAddOrUpdateContact}
+            style={{ ...styles.actionBtn, backgroundColor: editingContactId ? "#f59e0b" : "#10b981" }}>
             {editingContactId ? "Update" : "Add"} Contact
           </button>
           {editingContactId && (
-            <button
-              onClick={() => {
-                setEditingContactId(null);
-                setNewType("");
-                setNewLink("");
-              }}
-              style={{
-                backgroundColor: "#6c757d",
-                color: "white",
-                border: "none",
-                padding: "0.5rem 1rem",
-                borderRadius: "8px",
-              }}
-            >
-              Cancel
-            </button>
+            <button onClick={() => { setEditingContactId(null); setNewType(""); setNewLink(""); }}
+              style={styles.cancelBtn}>Cancel</button>
           )}
         </div>
 
-        {/* Contact List with Drag & Drop */}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="contacts">
             {(provided) => (
-              <ul
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                style={{ listStyle: "none", padding: 0 }}
-              >
+              <ul {...provided.droppableProps} ref={provided.innerRef} style={{ listStyle: "none", padding: 0 }}>
                 {contacts.map((contact, index) => (
                   <Draggable key={contact.id} draggableId={contact.id} index={index}>
                     {(provided, snapshot) => (
-                      <li
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
+                      <li ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
                         style={{
-                          padding: "1rem",
-                          border: "1px solid #eee",
-                          borderRadius: "10px",
-                          marginBottom: "1rem",
-                          backgroundColor: snapshot.isDragging ? "#e0f7fa" : "#fafafa",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          flexWrap: "wrap",
+                          ...styles.contactItem,
+                          backgroundColor: snapshot.isDragging ? "#eef2ff" : "#f9fafb",
                           ...provided.draggableProps.style,
-                        }}
-                      >
+                        }}>
                         <div>
                           <strong>{contact.type}:</strong>{" "}
-                          <a href={contact.link} target="_blank" rel="noreferrer" style={{ color: "#007BFF" }}>
+                          <a href={contact.link} target="_blank" rel="noreferrer" style={{ color: "#6366f1" }}>
                             {contact.link}
                           </a>
                         </div>
-                        <div style={{ marginTop: "0.5rem" }}>
-                          <button
-                            onClick={() => handleEditContact(contact)}
-                            style={{
-                              backgroundColor: "#5bc0de",
-                              color: "white",
-                              border: "none",
-                              padding: "0.4rem 0.8rem",
-                              borderRadius: "6px",
-                              marginRight: "0.5rem",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteContact(contact.id)}
-                            style={{
-                              backgroundColor: "#d9534f",
-                              color: "white",
-                              border: "none",
-                              padding: "0.4rem 0.8rem",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Delete
-                          </button>
+                        <div style={{ marginTop: "0.5rem", display: "flex", gap: 6 }}>
+                          <button onClick={() => handleEditContact(contact)} style={styles.editBtn}>Edit</button>
+                          <button onClick={() => handleDeleteContact(contact.id)} style={styles.deleteBtn}>Delete</button>
                         </div>
                       </li>
                     )}
@@ -338,135 +150,74 @@ const AdminContact = () => {
           </Droppable>
         </DragDropContext>
 
-        <hr style={{ margin: "3rem 0" }} />
+        <hr style={{ margin: "2rem 0", borderColor: "#e5e7eb" }} />
 
-        {/* CV Section */}
-        <h2
-          style={{
-            fontSize: "2.2rem",
-            textAlign: "center",
-            marginBottom: "1.5rem",
-            fontWeight: "bold",
-            background: "linear-gradient(90deg, #ff512f, #dd2476)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}
-        >
-          📄 Manage CV Upload
-        </h2>
+        <h2 style={styles.title}>Manage CV Upload</h2>
 
-        {/* CV Upload & List (same as before) */}
-        <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={(e) => setNewCV(e.target.files[0])}
-            style={{ flex: "1 1 300px" }}
-          />
-
+        <div style={styles.addRow}>
+          <input type="file" accept=".pdf" onChange={(e) => setNewCV(e.target.files[0])}
+            style={{ flex: "1 1 300px" }} />
           {editingCVId ? (
             <>
-              <button
-                onClick={() => handleUpdateCV(editingCVId)}
-                style={{
-                  backgroundColor: "#f0ad4e",
-                  color: "white",
-                  border: "none",
-                  padding: "0.5rem 1rem",
-                  borderRadius: "8px",
-                }}
-              >
-                Update CV
-              </button>
-              <button
-                onClick={() => {
-                  setEditingCVId(null);
-                  setNewCV(null);
-                }}
-                style={{
-                  backgroundColor: "#6c757d",
-                  color: "white",
-                  border: "none",
-                  padding: "0.5rem 1rem",
-                  borderRadius: "8px",
-                }}
-              >
-                Cancel
-              </button>
+              <button onClick={() => handleUpdateCV(editingCVId)} style={{ ...styles.actionBtn, backgroundColor: "#f59e0b" }}>Update CV</button>
+              <button onClick={() => { setEditingCVId(null); setNewCV(null); }} style={styles.cancelBtn}>Cancel</button>
             </>
           ) : (
-            <button
-              onClick={handleAddCV}
-              style={{
-                backgroundColor: "#0275d8",
-                color: "white",
-                border: "none",
-                padding: "0.5rem 1rem",
-                borderRadius: "8px",
-              }}
-            >
-              Upload CV
-            </button>
+            <button onClick={handleAddCV} style={{ ...styles.actionBtn, backgroundColor: "#6366f1" }}>Upload CV</button>
           )}
         </div>
 
-        <ul style={{ listStyle: "none", padding: 0 }}>
+        <ul style={{ listStyle: "none", padding: 0, marginTop: "1rem" }}>
           {cvs.map((cv) => (
-            <li
-              key={cv.id}
-              style={{
-                padding: "1rem",
-                border: "1px solid #eee",
-                borderRadius: "10px",
-                marginBottom: "1rem",
-                backgroundColor: "#fefefe",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-              }}
-            >
-              <a href={getCVViewUrl(cv)} target="_blank" rel="noreferrer" style={{ color: "#28a745" }}>
-                📄 View CV
+            <li key={cv.id} style={styles.contactItem}>
+              <a href={getCVViewUrl(cv)} target="_blank" rel="noreferrer" style={{ color: "#10b981" }}>
+                View CV
               </a>
-              <div style={{ marginTop: "0.5rem" }}>
-                <button
-                  onClick={() => {
-                    setEditingCVId(cv.id);
-                    setNewCV(null);
-                  }}
-                  style={{
-                    marginRight: "0.5rem",
-                    backgroundColor: "#5bc0de",
-                    color: "white",
-                    border: "none",
-                    padding: "0.4rem 0.8rem",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteCV(cv.id)}
-                  style={{
-                    backgroundColor: "#d9534f",
-                    color: "white",
-                    border: "none",
-                    padding: "0.4rem 0.8rem",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Delete
-                </button>
+              <div style={{ marginTop: "0.5rem", display: "flex", gap: 6 }}>
+                <button onClick={() => { setEditingCVId(cv.id); setNewCV(null); }} style={styles.editBtn}>Edit</button>
+                <button onClick={() => handleDeleteCV(cv.id)} style={styles.deleteBtn}>Delete</button>
               </div>
             </li>
           ))}
         </ul>
       </div>
-    </section>
+    </div>
   );
+};
+
+const styles = {
+  pageContainer: { padding: "2rem", minHeight: "100vh" },
+  contentWrapper: {
+    maxWidth: "800px", width: "100%", backgroundColor: "#fff",
+    padding: "2rem", borderRadius: 16, boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+  },
+  title: {
+    fontSize: "1.5rem", textAlign: "center", marginBottom: "1.5rem",
+    fontWeight: 700, color: "#1e1b4b",
+  },
+  addRow: { display: "flex", gap: "0.75rem", marginBottom: "1.5rem", flexWrap: "wrap", alignItems: "center" },
+  input: { padding: "8px 10px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: "0.9rem" },
+  actionBtn: {
+    color: "white", border: "none", padding: "8px 16px",
+    borderRadius: 8, cursor: "pointer", fontWeight: 600, fontSize: "0.9rem",
+  },
+  cancelBtn: {
+    backgroundColor: "#9ca3af", color: "white", border: "none",
+    padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontWeight: 600,
+  },
+  contactItem: {
+    padding: "1rem", border: "1px solid #e5e7eb", borderRadius: 12,
+    marginBottom: "0.75rem", display: "flex", justifyContent: "space-between",
+    alignItems: "center", flexWrap: "wrap",
+  },
+  editBtn: {
+    backgroundColor: "#6366f1", color: "white", border: "none",
+    padding: "5px 12px", borderRadius: 8, cursor: "pointer", fontWeight: 600,
+  },
+  deleteBtn: {
+    backgroundColor: "#ef4444", color: "white", border: "none",
+    padding: "5px 12px", borderRadius: 8, cursor: "pointer", fontWeight: 600,
+  },
 };
 
 export default AdminContact;

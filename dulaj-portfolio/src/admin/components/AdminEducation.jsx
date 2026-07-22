@@ -1,17 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../../firebase";
 import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  doc,
-  updateDoc,
-  query,
-  orderBy
+  collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const AdminEducation = () => {
@@ -19,30 +11,19 @@ const AdminEducation = () => {
   const [newEdu, setNewEdu] = useState({ university: "", field: "", status: "", logoUrl: "" });
   const [editingId, setEditingId] = useState(null);
 
-  const navigate = useNavigate();
-
-  // Fetch all education entries
   const fetchEducations = async () => {
     const q = query(collection(db, "education"), orderBy("order", "asc"));
     const querySnapshot = await getDocs(q);
-    const data = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setEducations(data);
   };
 
-  useEffect(() => {
-    fetchEducations();
-  }, []);
+  useEffect(() => { fetchEducations(); }, []);
 
-  // Add or update entry
   const handleSave = async () => {
     const { university, field, status, logoUrl } = newEdu;
     if (!university || !field || !status) return alert("All fields are required!");
-
     const eduData = { university, field, status, logoUrl: logoUrl || "" };
-
     if (editingId) {
       await updateDoc(doc(db, "education", editingId), eduData);
       alert("Education updated!");
@@ -51,7 +32,6 @@ const AdminEducation = () => {
       await addDoc(collection(db, "education"), { ...eduData, order: maxOrder + 1 });
       alert("Education added!");
     }
-
     setNewEdu({ university: "", field: "", status: "", logoUrl: "" });
     setEditingId(null);
     fetchEducations();
@@ -63,8 +43,7 @@ const AdminEducation = () => {
   };
 
   const handleCancelEdit = () => {
-    setEditingId(null);
-    setNewEdu({ university: "", field: "", status: "", logoUrl: "" });
+    setEditingId(null); setNewEdu({ university: "", field: "", status: "", logoUrl: "" });
   };
 
   const handleDelete = async (edu) => {
@@ -74,95 +53,53 @@ const AdminEducation = () => {
     }
   };
 
-  // Handle drag end
   const handleDragEnd = async (result) => {
     if (!result.destination) return;
-
     const items = Array.from(educations);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
-
-    // Update order in Firestore
     for (let i = 0; i < items.length; i++) {
       await updateDoc(doc(db, "education", items[i].id), { order: i + 1 });
     }
-
     setEducations(items);
   };
 
   return (
     <div style={styles.pageContainer}>
       <div style={styles.contentWrapper}>
-        {/* Back Button */}
-        <motion.button
-          onClick={() => navigate("/admin/dashboard")}
-          style={styles.backBtn}
-          whileHover={{ scale: 1.1, rotate: 3, boxShadow: "0 12px 25px rgba(0,0,0,0.3)" }}
-          whileTap={{ scale: 0.95, rotate: -3 }}
-        >
-          ← Back to Dashboard
-        </motion.button>
-
-        {/* Page Title */}
-        <motion.h2
-          style={styles.title}
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 120 }}
-        >
+        <motion.h2 style={styles.title}
+          initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 120 }}>
           {editingId ? "Edit Education" : "Add New Education"}
         </motion.h2>
 
-        {/* Form */}
         <motion.div style={styles.form}>
-          <input
-            type="text"
-            placeholder="University Name"
-            value={newEdu.university}
-            onChange={(e) => setNewEdu({ ...newEdu, university: e.target.value })}
-            style={styles.input}
-          />
-          <input
-            type="text"
-            placeholder="Field of Study"
-            value={newEdu.field}
-            onChange={(e) => setNewEdu({ ...newEdu, field: e.target.value })}
-            style={styles.input}
-          />
-          <select
-            value={newEdu.status}
-            onChange={(e) => setNewEdu({ ...newEdu, status: e.target.value })}
-            style={styles.input}
-          >
+          <input type="text" placeholder="University Name" value={newEdu.university}
+            onChange={(e) => setNewEdu({ ...newEdu, university: e.target.value })} style={styles.input} />
+          <input type="text" placeholder="Field of Study" value={newEdu.field}
+            onChange={(e) => setNewEdu({ ...newEdu, field: e.target.value })} style={styles.input} />
+          <select value={newEdu.status} onChange={(e) => setNewEdu({ ...newEdu, status: e.target.value })} style={styles.input}>
             <option value="">Select Status</option>
             <option value="Completed">Completed</option>
             <option value="Following">Following</option>
             <option value="Dropped">Dropped</option>
           </select>
-          <input
-            type="text"
-            placeholder="University Logo URL (optional)"
-            value={newEdu.logoUrl}
-            onChange={(e) => setNewEdu({ ...newEdu, logoUrl: e.target.value })}
-            style={styles.input}
-          />
-
+          <input type="text" placeholder="University Logo URL (optional)" value={newEdu.logoUrl}
+            onChange={(e) => setNewEdu({ ...newEdu, logoUrl: e.target.value })} style={styles.input} />
           <div style={{ display: "flex", gap: "10px" }}>
-            <motion.button onClick={handleSave} style={styles.uploadButton} whileHover={{ scale: 1.05 }}>
+            <motion.button onClick={handleSave} style={styles.uploadButton} whileHover={{ scale: 1.03 }}>
               {editingId ? "Update" : "Add"} Education
             </motion.button>
             {editingId && (
-              <motion.button onClick={handleCancelEdit} style={styles.cancelButton} whileHover={{ scale: 1.05 }}>
-                Cancel
-              </motion.button>
+              <motion.button onClick={handleCancelEdit} style={styles.cancelButton} whileHover={{ scale: 1.03 }}>Cancel</motion.button>
             )}
           </div>
         </motion.div>
 
-        {/* Education History */}
-        <h3 style={{ marginTop: "3rem", marginBottom: "1rem", textAlign: "center" }}>🎓 Education History</h3>
+        <h3 style={{ marginTop: "2rem", marginBottom: "1rem", textAlign: "center", color: "#1e1b4b", fontWeight: 700 }}>
+          Education History
+        </h3>
 
-        {/* Drag & Drop */}
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="educations">
             {(provided) => (
@@ -170,35 +107,19 @@ const AdminEducation = () => {
                 {educations.map((edu, index) => (
                   <Draggable key={edu.id} draggableId={edu.id} index={index}>
                     {(provided) => (
-                      <motion.div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
+                      <motion.div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
                         style={{ ...styles.card, ...provided.draggableProps.style }}
-                        whileHover={{ scale: 1.03, boxShadow: "0 10px 25px rgba(0,0,0,0.2)" }}
-                        whileTap={{ scale: 0.98, rotate: -1 }}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ type: "spring", stiffness: 100, damping: 12 }}
-                      >
-                        <h3 style={{ fontSize: "1.3rem", fontWeight: "bold", color: "#4f46e5" }}>{edu.university}</h3>
+                        whileHover={{ scale: 1.02, boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                        transition={{ type: "spring", stiffness: 100, damping: 12 }}>
+                        <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#6366f1" }}>{edu.university}</h3>
                         <p><strong>Field:</strong> {edu.field}</p>
                         <p><strong>Status:</strong> {edu.status}</p>
                         <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "0.5rem" }}>
-                          <motion.button
-                            onClick={() => handleEdit(edu)}
-                            style={styles.editButton}
-                            whileHover={{ scale: 1.1, backgroundColor: "#2f855a" }}
-                          >
-                            Edit
-                          </motion.button>
-                          <motion.button
-                            onClick={() => handleDelete(edu)}
-                            style={styles.deleteButton}
-                            whileHover={{ scale: 1.1, backgroundColor: "#c53030" }}
-                          >
-                            Delete
-                          </motion.button>
+                          <motion.button onClick={() => handleEdit(edu)} style={styles.editButton}
+                            whileHover={{ scale: 1.05 }}>Edit</motion.button>
+                          <motion.button onClick={() => handleDelete(edu)} style={styles.deleteButton}
+                            whileHover={{ scale: 1.05 }}>Delete</motion.button>
                         </div>
                       </motion.div>
                     )}
@@ -215,53 +136,38 @@ const AdminEducation = () => {
 };
 
 const styles = {
-  pageContainer: {
-    minHeight: "100vh",
-    width: "100vw",
-    background: "linear-gradient(135deg, #667eea, #764ba2)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    padding: "3rem 1rem",
-    fontFamily: "Arial, sans-serif",
-  },
+  pageContainer: { padding: "2rem", minHeight: "100vh" },
   contentWrapper: {
-    maxWidth: "900px",
-    width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: "16px",
-    boxShadow: "0 12px 40px rgba(0,0,0,0.25)",
-    padding: "3rem 2rem",
-    marginBottom: "3rem",
-    backdropFilter: "blur(10px)",
-  },
-  backBtn: {
-    background: "linear-gradient(90deg, #f6d365, #fda085)",
-    padding: "10px 20px",
-    borderRadius: "12px",
-    border: "none",
-    fontWeight: "bold",
-    cursor: "pointer",
-    marginBottom: "2rem",
-    color: "#fff",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+    maxWidth: "900px", width: "100%", backgroundColor: "#fff",
+    borderRadius: 16, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", padding: "2rem",
   },
   title: {
-    fontSize: "2.2rem",
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: "2rem",
-    color: "#333",
-    textShadow: "2px 2px 8px rgba(0,0,0,0.2)",
+    fontSize: "1.5rem", fontWeight: 700, textAlign: "center",
+    marginBottom: "1.5rem", color: "#1e1b4b",
   },
   form: { marginBottom: "2rem", display: "flex", flexDirection: "column", gap: "10px" },
-  input: { padding: "10px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "1rem" },
-  uploadButton: { padding: "10px", backgroundColor: "#4f46e5", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "1rem" },
-  cancelButton: { padding: "10px", backgroundColor: "#718096", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "1rem" },
+  input: { padding: "10px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: "1rem" },
+  uploadButton: {
+    padding: "10px", backgroundColor: "#6366f1", color: "white",
+    border: "none", borderRadius: 8, cursor: "pointer", fontSize: "1rem", fontWeight: 600,
+  },
+  cancelButton: {
+    padding: "10px", backgroundColor: "#9ca3af", color: "white",
+    border: "none", borderRadius: 8, cursor: "pointer", fontSize: "1rem",
+  },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px" },
-  card: { padding: "1rem", backgroundColor: "white", borderRadius: "10px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", textAlign: "center", cursor: "grab" },
-  editButton: { backgroundColor: "#38a169", color: "white", border: "none", padding: "6px 12px", borderRadius: "6px", cursor: "pointer" },
-  deleteButton: { backgroundColor: "#e53e3e", border: "none", color: "white", padding: "6px 12px", borderRadius: "6px", cursor: "pointer" }
+  card: {
+    padding: "1rem", backgroundColor: "#f9fafb", borderRadius: 12,
+    boxShadow: "0 2px 8px rgba(0,0,0,0.06)", textAlign: "center", cursor: "grab",
+  },
+  editButton: {
+    backgroundColor: "#10b981", color: "white", border: "none",
+    padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontWeight: 600,
+  },
+  deleteButton: {
+    backgroundColor: "#ef4444", border: "none", color: "white",
+    padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontWeight: 600,
+  },
 };
 
 export default AdminEducation;

@@ -10,6 +10,7 @@ import CertificatesPage from "./pages/CertificatesPage";
 import EducationPage from "./pages/EducationPage";
 
 import AdminLoginPage from "./admin/pages/AdminLoginPage";
+import AdminLayout from "./admin/components/AdminLayout";
 import AdminDashboardPage from "./admin/pages/AdminDashboardPage";
 import AdminAboutPage from "./admin/pages/AdminAboutPage";
 import AdminSkillsPage from "./admin/pages/AdminSkillsPage";
@@ -17,6 +18,7 @@ import AdminContactPage from "./admin/pages/AdminContactPage";
 import AdminProjectsPage from "./admin/pages/AdminProjectsPage";
 import AdminCertificatesPage from "./admin/pages/AdminCertificatesPage";
 import AdminEducationPage from "./admin/pages/AdminEducationPage";
+import AdminMessagesPage from "./admin/pages/AdminMessagesPage";
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -51,67 +53,31 @@ const App = () => {
         <Route path="/certificates" element={<CertificatesPage />} />
         <Route path="/education" element={<EducationPage />} />
 
-        {/* Admin Pages */}
+        {/* Admin Login */}
         <Route
           path="/admin/login"
           element={<div className="admin-theme"><AdminLoginPage onLogin={() => setIsAuthenticated(true)} /></div>}
         />
+
+        {/* Admin Routes with Sidebar Layout */}
         <Route
-          path="/admin/dashboard"
+          path="/admin"
           element={
             <PrivateRoute isAuthenticated={isAuthenticated}>
-              <div className="admin-theme"><AdminDashboardPage /></div>
+              <div className="admin-theme"><AdminLayout /></div>
             </PrivateRoute>
           }
-        />
-        <Route
-          path="/admin/about"
-          element={
-            <PrivateRoute isAuthenticated={isAuthenticated}>
-              <div className="admin-theme"><AdminAboutPage /></div>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin/projects"
-          element={
-            <PrivateRoute isAuthenticated={isAuthenticated}>
-              <div className="admin-theme"><AdminProjectsPage /></div>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin/skills"
-          element={
-            <PrivateRoute isAuthenticated={isAuthenticated}>
-              <div className="admin-theme"><AdminSkillsPage /></div>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin/contact"
-          element={
-            <PrivateRoute isAuthenticated={isAuthenticated}>
-              <div className="admin-theme"><AdminContactPage /></div>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin/certificates"
-          element={
-            <PrivateRoute isAuthenticated={isAuthenticated}>
-              <div className="admin-theme"><AdminCertificatesPage /></div>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin/education"
-          element={
-            <PrivateRoute isAuthenticated={isAuthenticated}>
-              <div className="admin-theme"><AdminEducationPage /></div>
-            </PrivateRoute>
-          }
-        />
+        >
+          <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="about" element={<AdminAboutPage />} />
+          <Route path="projects" element={<AdminProjectsPage />} />
+          <Route path="skills" element={<AdminSkillsPage />} />
+          <Route path="contact" element={<AdminContactPage />} />
+          <Route path="certificates" element={<AdminCertificatesPage />} />
+          <Route path="education" element={<AdminEducationPage />} />
+          <Route path="messages" element={<AdminMessagesPage />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+        </Route>
       </Routes>
     </>
   );

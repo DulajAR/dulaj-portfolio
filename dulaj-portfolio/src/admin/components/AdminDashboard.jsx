@@ -1,264 +1,365 @@
-// src/components/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
-import { auth, db } from "../../firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../firebase";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import adminImage from "../../assets/admin.png";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [time, setTime] = useState("");
+  const [stats, setStats] = useState({
+    projects: 0,
+    skills: 0,
+    certificates: 0,
+    education: 0,
+    contacts: 0,
+    messages: 0,
+    unreadMessages: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-  // Added Education page here
-  const navItems = [
-    { label: "About", path: "/admin/about" },
-    { label: "Projects", path: "/admin/projects" },
-    { label: "Skills", path: "/admin/skills" },
-    { label: "Certificates", path: "/admin/certificates" },
-    { label: "Education", path: "/admin/education" }, // ✅ New Education page
-    { label: "Contact", path: "/admin/contact" },
-  ];
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const [projects, skills, certificates, education, contacts, messages] =
+          await Promise.all([
+            getDocs(collection(db, "projects")),
+            getDocs(collection(db, "skills")),
+            getDocs(collection(db, "certificates")),
+            getDocs(collection(db, "education")),
+            getDocs(collection(db, "contacts")),
+            getDocs(collection(db, "messages")),
+          ]);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate("/admin/login");
-    } catch (error) {
-      console.error("Logout failed:", error.message);
-    }
-  };
+        let unread = 0;
+        messages.forEach((doc) => {
+          if (doc.data().isRead === false) unread++;
+        });
 
-  // Listen to unread messages in real-time
+        setStats({
+          projects: projects.size,
+          skills: skills.size,
+          certificates: certificates.size,
+          education: education.size,
+          contacts: contacts.size,
+          messages: messages.size,
+          unreadMessages: unread,
+        });
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "messages"), (snapshot) => {
-      let unreadMessages = 0;
+      let unread = 0;
       snapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.isRead === false) {
-          unreadMessages++;
-        }
+        if (doc.data().isRead === false) unread++;
       });
-      setUnreadCount(unreadMessages);
+      setStats((prev) => ({ ...prev, unreadMessages: unread }));
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Update digital clock every second
-  useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      const hours = now.getHours().toString().padStart(2, "0");
-      const minutes = now.getMinutes().toString().padStart(2, "0");
-      const seconds = now.getSeconds();
-      const colon = seconds % 2 === 0 ? ":" : " ";
-      setTime(`${hours}${colon}${minutes}`);
-    };
-
-    updateClock(); // initial call
-    const intervalId = setInterval(updateClock, 1000);
-
-    return () => clearInterval(intervalId);
-  }, []);
+  const statCards = [
+    {
+      label: "Projects",
+      count: stats.projects,
+      path: "/admin/projects",
+      color: "#6366f1",
+      bg: "linear-gradient(135deg, #6366f1, #818cf8)",
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </svg>
+      ),
+    },
+    {
+      label: "Skills",
+      count: stats.skills,
+      path: "/admin/skills",
+      color: "#f59e0b",
+      bg: "linear-gradient(135deg, #f59e0b, #fbbf24)",
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      ),
+    },
+    {
+      label: "Certificates",
+      count: stats.certificates,
+      path: "/admin/certificates",
+      color: "#10b981",
+      bg: "linear-gradient(135deg, #10b981, #34d399)",
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="8" r="6" />
+          <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+        </svg>
+      ),
+    },
+    {
+      label: "Education",
+      count: stats.education,
+      path: "/admin/education",
+      color: "#8b5cf6",
+      bg: "linear-gradient(135deg, #8b5cf6, #a78bfa)",
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+          <path d="M6 12v5c3 3 6 3 12 0v-5" />
+        </svg>
+      ),
+    },
+    {
+      label: "Contact Links",
+      count: stats.contacts,
+      path: "/admin/contact",
+      color: "#06b6d4",
+      bg: "linear-gradient(135deg, #06b6d4, #22d3ee)",
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        </svg>
+      ),
+    },
+    {
+      label: "Messages",
+      count: stats.messages,
+      path: "/admin/messages",
+      color: "#ef4444",
+      bg: "linear-gradient(135deg, #ef4444, #f87171)",
+      badge: stats.unreadMessages > 0 ? stats.unreadMessages : null,
+      icon: (
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      ),
+    },
+  ];
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1>Dulaj Portfolio – Admin Panel</h1>
-
-        {/* Digital clock */}
-        <div className="digital-clock" aria-label="Current time" role="timer">
-          {time}
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <div style={styles.headerLeft}>
+          <div style={styles.avatarWrap}>
+            <img src={adminImage} alt="Admin" style={styles.avatar} />
+          </div>
+          <div>
+            <h1 style={styles.title}>Welcome back, Dulaj</h1>
+            <p style={styles.subtitle}>Here's an overview of your portfolio</p>
+          </div>
         </div>
-
-        <button className="logout-button" onClick={handleLogout}>
-          Logout
-        </button>
       </div>
 
-      <div className="nav-grid">
-        {navItems.map((item) => (
+      <div className="admin-stats-grid">
+        {statCards.map((card) => (
           <div
-            key={item.label}
-            className="nav-card"
-            onClick={() => navigate(item.path)}
-            style={{ position: "relative" }}
+            key={card.label}
+            onClick={() => navigate(card.path)}
+            style={styles.statCard}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-4px)";
+              e.currentTarget.style.boxShadow = "0 12px 32px rgba(0,0,0,0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)";
+            }}
           >
-            <h3>{item.label}</h3>
-
-            {/* Only Contact shows unread messages */}
-            {item.label === "Contact" && unreadCount > 0 && (
-              <span
-                className="notification-badge"
-                aria-label={`${unreadCount} unread messages`}
-              >
-                {/* Message Icon SVG */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="white"
-                  width="16px"
-                  height="16px"
-                  style={{ marginRight: "6px", verticalAlign: "middle" }}
-                  aria-hidden="true"
-                >
-                  <path d="M20 2H4a2 2 0 00-2 2v16l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z" />
-                </svg>
-                {unreadCount}
-              </span>
-            )}
+            <div style={{ ...styles.statIcon, background: card.bg }}>
+              {card.icon}
+              {card.badge && <span style={styles.statBadge}>{card.badge}</span>}
+            </div>
+            <div style={styles.statInfo}>
+              <span style={styles.statCount}>{loading ? "..." : card.count}</span>
+              <span style={styles.statLabel}>{card.label}</span>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="image-container">
-        <img src={adminImage} alt="Admin" />
+      <div style={styles.quickActions}>
+        <h2 style={styles.sectionTitle}>Quick Actions</h2>
+        <div style={styles.actionsGrid}>
+          <button onClick={() => navigate("/admin/projects")} style={styles.actionBtn}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Project
+          </button>
+          <button onClick={() => navigate("/admin/skills")} style={styles.actionBtn}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Skill
+          </button>
+          <button onClick={() => navigate("/admin/certificates")} style={styles.actionBtn}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Certificate
+          </button>
+          <button onClick={() => navigate("/admin/messages")} style={{ ...styles.actionBtn, ...(stats.unreadMessages > 0 ? styles.actionBtnAlert : {}) }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            View Messages
+            {stats.unreadMessages > 0 && (
+              <span style={styles.actionBadge}>{stats.unreadMessages} new</span>
+            )}
+          </button>
+        </div>
       </div>
 
-      <style>{`
-        .dashboard-container {
-          padding: 2rem;
-          min-height: 100vh;
-          background: linear-gradient(to right, #eef2f3, #8e9eab);
-          font-family: 'Segoe UI', sans-serif;
-        }
 
-        .dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-          gap: 1rem;
-          flex-wrap: wrap;
-        }
-
-        .dashboard-header h1 {
-          margin: 0;
-          color: #333;
-          flex-grow: 1;
-          min-width: 220px;
-        }
-
-        .digital-clock {
-          font-family: 'Courier New', Courier, monospace;
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #39ff14;
-          background: #000;
-          padding: 0.4rem 1rem;
-          border-radius: 6px;
-          box-shadow:
-            0 0 5px #39ff14,
-            0 0 10px #39ff14,
-            0 0 20px #39ff14,
-            0 0 40px #39ff14;
-          user-select: none;
-          min-width: 100px;
-          text-align: center;
-          letter-spacing: 0.15em;
-        }
-
-        .logout-button {
-          background-color: #ef4444;
-          color: white;
-          padding: 0.5rem 1rem;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 0.95rem;
-          transition: background-color 0.3s ease;
-          min-width: 90px;
-        }
-
-        .logout-button:hover {
-          background-color: #dc2626;
-        }
-
-        .nav-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-          gap: 1.5rem;
-          padding: 0 1rem;
-        }
-
-        .nav-card {
-          background: #fff;
-          border-radius: 16px;
-          padding: 2rem;
-          text-align: center;
-          cursor: pointer;
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-          transition: transform 0.3s, box-shadow 0.3s;
-          position: relative;
-        }
-
-        .nav-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .nav-card h3 {
-          margin: 0;
-          font-size: 1.2rem;
-          color: #4f46e5;
-        }
-
-        .notification-badge {
-          position: absolute;
-          top: 12px;
-          right: 16px;
-          background-color: #ef4444;
-          color: white;
-          padding: 4px 10px;
-          font-size: 0.85rem;
-          font-weight: bold;
-          border-radius: 16px;
-          box-shadow: 0 0 6px rgba(0,0,0,0.2);
-          display: flex;
-          align-items: center;
-          user-select: none;
-          white-space: nowrap;
-          min-width: 30px;
-          justify-content: center;
-        }
-
-        .image-container {
-          margin-top: 3rem;
-          text-align: center;
-        }
-
-        .image-container img {
-          max-width: 400px;
-          width: 100%;
-          height: auto;
-          border-radius: 16px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-          cursor: pointer;
-          animation: fadeInScale 1s ease forwards;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-          opacity: 0;
-          transform: scale(0.95);
-          margin-left: auto;
-          margin-right: auto;
-          display: block;
-        }
-
-        .image-container img:hover {
-          transform: scale(1.05);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-        }
-
-        @keyframes fadeInScale {
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-      `}</style>
     </div>
   );
+};
+
+const styles = {
+  container: {
+    padding: "2rem",
+    minHeight: "100vh",
+  },
+  header: {
+    marginBottom: "2rem",
+  },
+  headerLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "1.25rem",
+  },
+  avatarWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    overflow: "hidden",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+    flexShrink: 0,
+  },
+  avatar: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  },
+  title: {
+    fontSize: "1.75rem",
+    fontWeight: 800,
+    color: "#1e1b4b",
+    margin: 0,
+    letterSpacing: "-0.02em",
+  },
+  subtitle: {
+    fontSize: "0.95rem",
+    color: "#6b7280",
+    margin: "4px 0 0",
+  },
+  statCard: {
+    background: "#fff",
+    borderRadius: 16,
+    padding: "1.5rem",
+    display: "flex",
+    alignItems: "center",
+    gap: "1rem",
+    cursor: "pointer",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    position: "relative",
+  },
+  statIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#fff",
+    flexShrink: 0,
+    position: "relative",
+  },
+  statBadge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: "#ef4444",
+    color: "#fff",
+    fontSize: "0.65rem",
+    fontWeight: 700,
+    width: 20,
+    height: 20,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statInfo: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  statCount: {
+    fontSize: "1.75rem",
+    fontWeight: 800,
+    color: "#1e1b4b",
+    lineHeight: 1,
+  },
+  statLabel: {
+    fontSize: "0.85rem",
+    color: "#6b7280",
+    marginTop: 4,
+  },
+  quickActions: {
+    marginBottom: "2rem",
+  },
+  sectionTitle: {
+    fontSize: "1.1rem",
+    fontWeight: 700,
+    color: "#1e1b4b",
+    marginBottom: "1rem",
+  },
+  actionsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "0.75rem",
+  },
+  actionBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "12px 16px",
+    background: "#fff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 12,
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    fontWeight: 600,
+    color: "#374151",
+    transition: "all 0.2s",
+  },
+  actionBtnAlert: {
+    borderColor: "#fca5a5",
+    background: "#fef2f2",
+    color: "#dc2626",
+  },
+  actionBadge: {
+    marginLeft: "auto",
+    backgroundColor: "#ef4444",
+    color: "#fff",
+    fontSize: "0.7rem",
+    fontWeight: 700,
+    padding: "2px 8px",
+    borderRadius: 8,
+  },
 };
 
 export default AdminDashboard;

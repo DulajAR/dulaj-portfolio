@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { motion } from "framer-motion";
 
 const AdminAbout = () => {
-  const navigate = useNavigate();
-
   const [aboutContent, setAboutContent] = useState({});
   const [loading, setLoading] = useState(true);
   const [newCategory, setNewCategory] = useState("");
@@ -70,196 +67,171 @@ const AdminAbout = () => {
     }
   };
 
-  if (loading) return <p style={{ textAlign: "center" }}>Loading...</p>;
+  if (loading) return <div style={styles.loading}>Loading...</div>;
 
   return (
-    <section
-      style={{
-        minHeight: "100vh",
-        padding: "3rem 1rem",
-        background:
-          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        display: "flex",
-        justifyContent: "center",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "800px",
-          width: "100%",
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
-          padding: "2.5rem",
-          borderRadius: "14px",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-        }}
-      >
-        {/* Colorful Dashboard Button with hover effect */}
-        <motion.button
-          onClick={() => navigate("/admin/dashboard")}
-          whileHover={{ scale: 1.05, rotate: 2 }}
-          whileTap={{ scale: 0.95, rotate: -2 }}
-          style={{
-            marginBottom: "1.5rem",
-            padding: "12px 25px",
-            background: "linear-gradient(90deg, #ff6b6b, #fcb045, #48bb78, #4f46e5)",
-            backgroundSize: "400% 400%",
-            color: "#fff",
-            border: "none",
-            borderRadius: "12px",
-            cursor: "pointer",
-            fontSize: "1.1rem",
-            fontWeight: "bold",
-            textShadow: "1px 1px 4px rgba(0,0,0,0.3)",
-            animation: "gradientBG 8s ease infinite",
-          }}
-        >
-          Back to Dashboard
-        </motion.button>
-
-        {/* Colorful Edit About Section title */}
+    <div style={styles.pageContainer}>
+      <div style={styles.contentWrapper}>
         <motion.h2
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          style={{
-            fontSize: "2rem",
-            marginBottom: "2rem",
-            textAlign: "center",
-            fontWeight: "bold",
-            background: "linear-gradient(90deg, #ff6b6b, #fcb045, #48bb78, #4f46e5)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            textShadow: "0 0 10px rgba(0,0,0,0.1)",
-          }}
+          style={styles.title}
         >
           Edit About Section
         </motion.h2>
 
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column" }}
-        >
-          {/* Existing Categories */}
+        <form onSubmit={handleSubmit} style={styles.form}>
           {Object.keys(aboutContent).map((key) => (
-            <div
-              key={key}
-              style={{ marginBottom: "1rem", position: "relative" }}
-            >
-              <label
-                style={{
-                  fontWeight: "bold",
-                  marginBottom: "0.5rem",
-                  display: "block",
-                  color: "#444",
-                }}
-              >
+            <div key={key} style={styles.fieldGroup}>
+              <label style={styles.label}>
                 {key.charAt(0).toUpperCase() + key.slice(1)}
               </label>
-              <textarea
-                name={key}
-                value={aboutContent[key]}
-                onChange={handleChange}
-                rows="4"
-                required
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  fontSize: "1rem",
-                  borderRadius: "8px",
-                  border: "1px solid #ccc",
-                  resize: "vertical",
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => handleRemoveCategory(key)}
-                title={`Delete ${key}`}
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  top: "30px",
-                  backgroundColor: "#e53e3e",
-                  border: "none",
-                  borderRadius: "6px",
-                  color: "white",
-                  padding: "5px 10px",
-                  cursor: "pointer",
-                  fontSize: "0.9rem",
-                }}
-              >
-                Delete
-              </button>
+              <div style={styles.fieldRow}>
+                <textarea
+                  name={key}
+                  value={aboutContent[key]}
+                  onChange={handleChange}
+                  rows="4"
+                  required
+                  style={styles.textarea}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveCategory(key)}
+                  title={`Delete ${key}`}
+                  style={styles.deleteBtn}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
 
-          {/* Add New Category */}
-          <div
-            style={{
-              marginTop: "2rem",
-              display: "flex",
-              gap: "10px",
-              alignItems: "center",
-            }}
-          >
+          <div style={styles.addRow}>
             <input
               type="text"
               placeholder="New category name"
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "10px",
-                fontSize: "1rem",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-              }}
+              style={styles.input}
             />
             <button
               type="button"
               onClick={handleAddCategory}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#48bb78",
-                color: "white",
-                fontSize: "1rem",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-              }}
+              style={styles.addBtn}
             >
               Add Category
             </button>
           </div>
 
-          <button
-            type="submit"
-            style={{
-              marginTop: "1.5rem",
-              padding: "12px",
-              backgroundColor: "#4f46e5",
-              color: "#fff",
-              fontSize: "1rem",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
-          >
+          <button type="submit" style={styles.saveBtn}>
             Save All
           </button>
         </form>
       </div>
-
-      {/* Gradient animation */}
-      <style>{`
-        @keyframes gradientBG {
-          0% {background-position:0% 50%}
-          50% {background-position:100% 50%}
-          100% {background-position:0% 50%}
-        }
-      `}</style>
-    </section>
+    </div>
   );
+};
+
+const styles = {
+  pageContainer: {
+    padding: "2rem",
+    minHeight: "100vh",
+  },
+  contentWrapper: {
+    maxWidth: "800px",
+    width: "100%",
+    backgroundColor: "#fff",
+    padding: "2.5rem",
+    borderRadius: 16,
+    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+  },
+  loading: {
+    textAlign: "center",
+    padding: "4rem",
+    color: "#6b7280",
+  },
+  title: {
+    fontSize: "1.5rem",
+    fontWeight: 700,
+    color: "#1e1b4b",
+    marginBottom: "1.5rem",
+    textAlign: "center",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  fieldGroup: {
+    marginBottom: "1rem",
+  },
+  label: {
+    fontWeight: 600,
+    display: "block",
+    color: "#374151",
+    marginBottom: 6,
+    fontSize: "0.9rem",
+  },
+  fieldRow: {
+    display: "flex",
+    gap: 8,
+    alignItems: "flex-start",
+  },
+  textarea: {
+    flex: 1,
+    padding: "10px",
+    fontSize: "1rem",
+    borderRadius: 8,
+    border: "1px solid #d1d5db",
+    resize: "vertical",
+    fontFamily: "inherit",
+  },
+  deleteBtn: {
+    backgroundColor: "#ef4444",
+    border: "none",
+    borderRadius: 8,
+    color: "white",
+    padding: "8px 14px",
+    cursor: "pointer",
+    fontSize: "0.85rem",
+    fontWeight: 600,
+    flexShrink: 0,
+  },
+  addRow: {
+    marginTop: "1.5rem",
+    display: "flex",
+    gap: 10,
+    alignItems: "center",
+  },
+  input: {
+    flex: 1,
+    padding: "10px",
+    fontSize: "1rem",
+    borderRadius: 8,
+    border: "1px solid #d1d5db",
+  },
+  addBtn: {
+    padding: "10px 20px",
+    backgroundColor: "#10b981",
+    color: "white",
+    fontSize: "0.9rem",
+    border: "none",
+    borderRadius: 8,
+    cursor: "pointer",
+    fontWeight: 600,
+  },
+  saveBtn: {
+    marginTop: "1.5rem",
+    padding: "12px",
+    backgroundColor: "#6366f1",
+    color: "#fff",
+    fontSize: "1rem",
+    border: "none",
+    borderRadius: 8,
+    cursor: "pointer",
+    fontWeight: 600,
+  },
 };
 
 export default AdminAbout;
