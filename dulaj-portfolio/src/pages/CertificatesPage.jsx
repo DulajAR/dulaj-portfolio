@@ -12,4 +12,8 @@ const CertificatesPage = () => {
 
 
 
+
+
+
+
 export default CertificatesPage;
