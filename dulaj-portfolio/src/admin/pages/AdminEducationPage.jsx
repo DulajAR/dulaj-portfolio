@@ -9,4 +9,7 @@ const AdminEducationPage = () => {
   );
 };
 
+
+
+
 export default AdminEducationPage;
